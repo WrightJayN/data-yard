@@ -4,6 +4,8 @@ Learn database design by playing. Data Yard is a single-page browser game that c
 Database Design course: ER modelling, relational notation, normalization, relational algebra, SQL,
 MongoDB, JSON and XML. There is **nothing to install and no database to set up**. Open `index.html` and play.
 
+### ▶ [Play now: wrightjayn.github.io/data-yard](https://wrightjayn.github.io/data-yard/)
+
 ![Screens](docs/screens.jpg)
 
 🎬 **Demo video (30s, with music):** [docs/demo.mp4](docs/demo.mp4)
@@ -39,7 +41,7 @@ All names and data in the game are fictional sample data.
 ## Play
 
 - **Offline:** download `index.html` and open it in any modern browser (desktop or phone).
-- **GitHub Pages:** Settings → Pages → Deploy from branch → `main` / root. The game is then served at `https://<user>.github.io/data-yard/`.
+- **Online:** https://wrightjayn.github.io/data-yard/ (GitHub Pages, deployed from `main`).
 
 ## Develop
 
