@@ -1,0 +1,9 @@
+{
+  "name": "data-yard",
+  "version": "1.0.0",
+  "description": "A browser game for learning database design: ER, relational notation, SQL, MongoDB, JSON and XML.",
+  "private": true,
+  "scripts": { "build": "python3 build.py" },
+  "dependencies": { "sql.js": "1.10.3" },
+  "license": "MIT"
+}
