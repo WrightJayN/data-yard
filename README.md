@@ -9,6 +9,8 @@ to install and no database to set up**. Open `index.html` and start.
 
 ![Screens](docs/screens.jpg)
 
+**Demo video (45s, original music):** [docs/demo.mp4](docs/demo.mp4)
+
 ## The campus
 
 Each topic is a building on the campus map. Exercises are printed worksheets, and your work is marked
@@ -62,8 +64,6 @@ npm run build      # writes index.html
 
 To add an exercise, append an object to a building's `ch` array in `src/game.html`.
 Types: `mcq`, `sort`, `build`, `sql`, `mongo`, `json`, `xml`. The app name is the `APP_NAME` constant.
-
-`docs/demo.mp4` is a recording of the earlier *Data Yard* design.
 
 ## License
 
