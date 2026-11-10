@@ -6,7 +6,7 @@ MongoDB, JSON and XML. There is **nothing to install and no database to set up**
 
 ![Screens](docs/screens.jpg)
 
-🎬 **Demo video (30s):** [docs/demo.mp4](docs/demo.mp4)
+🎬 **Demo video (30s, with music):** [docs/demo.mp4](docs/demo.mp4)
 
 ## What's inside
 
