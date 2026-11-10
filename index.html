@@ -2,144 +2,348 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Data Yard: Database Design Quest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Normal Form: a campus for database design</title>
+<meta name="description" content="Learn database design (ER, relational, SQL, MongoDB, JSON, XML) by working through a campus of exercises.">
+<meta name="theme-color" content="#F4EFE6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16140F" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 2 36 7v13c0 10-7 16-16 19C11 36 4 30 4 20V7Z' fill='%23F4EFE6' stroke='%231C1A17' stroke-width='2.5'/%3E%3Cellipse cx='20' cy='14' rx='8' ry='3' fill='none' stroke='%23A63A0A' stroke-width='2.2'/%3E%3Cpath d='M12 14v11a8 3 0 0 0 16 0V14' fill='none' stroke='%23A63A0A' stroke-width='2.2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script>
+/* apply the saved theme before first paint to avoid a flash */
+(function(){var t='auto';try{t=(JSON.parse(localStorage.getItem('datayard_v1')||'{}')||{}).theme||'auto';}catch(e){}
+if(t==='auto')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day';
+document.documentElement.setAttribute('data-theme',t);})();
+</script>
 <style>
+/* ===================== TOKENS ===================== */
 :root{
-  --bg:#0f1a2b; --bg2:#16263d; --card:#1c3050; --card2:#233a5e; --line:#2e4a73;
-  --ink:#eef4ff; --mute:#9db1cf; --gold:#ffc83d; --green:#2bd67b; --red:#ff5c6c;
-  --blue:#4fa3ff; --teal:#22c3b5; --pink:#ff7ac6; --orange:#ff9a3c; --violet:#a98bff;
-  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --paper:#F4EFE6; --sheet:#FBF8F2; --sheet-2:#EFE8DC; --rule:#D9D0C1;
+  --ink:#1C1A17; --ink-2:#6B645A; --accent:#A63A0A; --accent-press:#8A2F07; --on-accent:#FBF8F2;
+  --redpen:#B91C1C; --tick:#166534; --pencil:#8A8275;
+  --h-er:#1E40AF; --h-rel:#6B21A8; --h-sql:#0F766E; --h-mongo:#3F6212; --h-json:#854D0E; --h-xml:#334155; --h-ink:#1C1A17;
+  --hall:var(--ink);
+  --shadow:0 1px 0 var(--rule),0 8px 24px -12px rgba(28,26,23,.18);
+  --display:'Space Grotesk',ui-sans-serif,system-ui,sans-serif;
+  --sans:Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+  --hand:Caveat,'Bradley Hand','Segoe Print',cursive;
+  --grain-o:.55;
+  color-scheme:light;
 }
+[data-theme=night]{
+  --paper:#16140F; --sheet:#211E17; --sheet-2:#2A261D; --rule:#3A342A;
+  --ink:#EDE6D8; --ink-2:#A39C8E; --accent:#F59E0B; --accent-press:#D97F06; --on-accent:#16140F;
+  --redpen:#F87171; --tick:#4ADE80; --pencil:#7D7668;
+  --h-er:#93C5FD; --h-rel:#D8B4FE; --h-sql:#5EEAD4; --h-mongo:#BEF264; --h-json:#FCD34D; --h-xml:#CBD5E1; --h-ink:#EDE6D8;
+  --shadow:none; --grain-o:.3;
+  color-scheme:dark;
+}
+
+/* ===================== BASE ===================== */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,sans-serif;font-size:16px}
-body{min-height:100vh;background:radial-gradient(1200px 600px at 50% -200px,#1f3d66 0%,var(--bg) 60%)}
-#app{max-width:720px;margin:0 auto;padding:14px 14px 120px}
-h1,h2,h3{font-family:Fredoka,Nunito,sans-serif;margin:0;letter-spacing:.2px}
-button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
-.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.top .back{width:40px;height:40px;border-radius:12px;background:var(--card);font-size:20px;display:grid;place-items:center;flex:none}
-.top .ttl{flex:1;min-width:0}
-.top .ttl h2{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.top .ttl small{color:var(--mute);font-weight:700;font-size:12px}
-.pill{display:inline-flex;align-items:center;gap:5px;background:var(--card);border-radius:999px;padding:6px 11px;font-weight:800;font-size:14px;flex:none}
-.hero{background:linear-gradient(135deg,#2a5298,#1e3c72 60%,#13284d);border-radius:22px;padding:18px;margin-bottom:16px;position:relative;overflow:hidden;border:1px solid #3b63a5}
-.hero h1{font-size:28px;line-height:1.1}
-.hero p{color:#cfe0ff;margin:6px 0 12px;font-size:14.5px}
-.hero .deco{position:absolute;right:-8px;top:-6px;font-size:84px;opacity:.18;transform:rotate(12deg)}
-.lvl{display:flex;align-items:center;gap:10px}
-.bar{flex:1;height:12px;background:#0d1b30;border-radius:99px;overflow:hidden}
-.bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ff8a3c);border-radius:99px;transition:width .5s}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:420px){.grid{grid-template-columns:1fr}}
-.world{border-radius:20px;padding:15px;text-align:left;position:relative;overflow:hidden;min-height:132px;display:flex;flex-direction:column;border:1px solid rgba(255,255,255,.12);transition:transform .12s}
-.world:active{transform:scale(.98)}
-.world .ico{font-size:34px;line-height:1}
-.world h3{font-size:18px;margin-top:8px}
-.world p{margin:3px 0 0;font-size:13px;opacity:.88;flex:1}
-.world .prog{margin-top:10px;font-weight:800;font-size:13px;display:flex;justify-content:space-between;align-items:center}
-.world .mini{height:7px;background:rgba(0,0,0,.25);border-radius:9px;overflow:hidden;margin-top:6px}
-.world .mini i{display:block;height:100%;background:#fff;opacity:.9}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.btn{background:var(--blue);color:#fff;font-weight:800;padding:13px 18px;border-radius:14px;box-shadow:0 4px 0 #2a6fc0;font-size:16px;transition:transform .08s}
-.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #2a6fc0}
-.btn.g{background:var(--green);box-shadow:0 4px 0 #17a35a;color:#06301a}
-.btn.o{background:var(--card2);box-shadow:0 4px 0 #142640}
-.btn.y{background:var(--gold);box-shadow:0 4px 0 #c99400;color:#3a2a00}
-.btn.sm{padding:9px 13px;font-size:14px;border-radius:12px}
-.btn:disabled{opacity:.45}
-.wide{width:100%}
-.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;border:1px solid var(--line)}
-.card.soft{background:var(--bg2)}
-.lesson h3{font-size:18px;margin-bottom:8px;color:var(--gold)}
-.lesson p,.lesson li{font-size:15px;line-height:1.5;color:#dbe6f7}
-.lesson ul{padding-left:20px;margin:6px 0}
-code,.code{font-family:var(--mono);font-size:13.5px}
-code{background:#0d1b30;padding:1px 6px;border-radius:6px;color:#9fe3ff}
-pre{background:#0b1626;border:1px solid var(--line);border-radius:12px;padding:12px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.5;color:#cfe6ff;margin:8px 0;white-space:pre}
-.path{display:flex;flex-direction:column;gap:10px}
-.node{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;text-align:left}
-.node .num{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-family:Fredoka;font-size:17px;flex:none;background:var(--card2)}
-.node.done .num{background:var(--green);color:#06301a}
-.node .nt{flex:1;min-width:0}
-.node .nt b{display:block;font-size:15px}
-.node .nt small{color:var(--mute);font-size:12.5px;font-weight:700}
-.stars{color:var(--gold);letter-spacing:1px;font-size:15px;flex:none}
-.stars .off{color:#3b5478}
-.q{font-size:17.5px;line-height:1.45;font-weight:700;margin:0 0 4px}
-.qsub{color:var(--mute);font-size:14px;margin:6px 0 0;line-height:1.45}
-.tag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:99px;background:#0d1b30;color:var(--teal);margin-bottom:10px}
-.opts{display:flex;flex-direction:column;gap:10px;margin-top:12px}
-.opt{background:var(--card2);border:2px solid var(--line);border-radius:14px;padding:13px 14px;text-align:left;font-weight:700;font-size:15.5px;line-height:1.4;transition:border-color .15s,background .15s}
-.opt.sel{border-color:var(--blue);background:#203f6b}
-.opt.right{border-color:var(--green);background:#14452f}
-.opt.wrong{border-color:var(--red);background:#4a1e28}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+body{min-height:100vh;transition:background-color .25s,color .25s}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:var(--grain-o);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .25  0 0 0 0 .2  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+#hdr,#app,.dock{position:relative;z-index:1}
+#app{max-width:720px;margin:0 auto;padding:16px 16px 128px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;font-weight:700;line-height:1.15}
+h1{font-size:28px} h2{font-size:22px;line-height:1.25} h3{font-size:18px;line-height:1.3}
+@media(min-width:640px){h1{font-size:32px}}
+p{margin:0 0 12px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+a{color:var(--accent)}
+:focus{outline:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.label{font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.muted{color:var(--ink-2)}
+.center{text-align:center}
+.ic{width:18px;height:18px;flex:none;vertical-align:-3px}
+u{text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-color:var(--hall)}
+
+/* ===================== HEADER ===================== */
+#hdr{position:sticky;top:0;z-index:8;background:var(--paper);border-bottom:1px solid var(--rule)}
+#hdr .in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 12px;min-height:60px}
+body.wide #hdr .in{max-width:1240px}
+.hbtn{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;flex:none;color:var(--ink)}
+.hbtn:hover{background:var(--sheet-2)}
+.hbtn .ic{width:22px;height:22px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand .crest{color:var(--accent);flex:none}
+.wordmark{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.htitle{flex:1;min-width:0;line-height:1.2}
+.htitle b{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hall);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.htitle span{display:block;font-family:var(--display);font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hstat{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.hrule{height:2px;background:var(--rule);position:relative}
+.hrule i{position:absolute;left:0;top:0;bottom:0;background:var(--hall);transition:width .4s}
+.promo{background:var(--ink);color:var(--paper);text-align:center;font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.04em;padding:8px 12px;transition:opacity .6s}
+
+/* ===================== BUTTONS ===================== */
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:4px;font-family:var(--sans);font-weight:600;font-size:15px;line-height:1.2;
+  background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);transition:transform .06s,background-color .15s}
+.btn:hover{background:var(--accent-press);border-color:var(--accent-press)}
+.btn:active{transform:translateY(1px)}
+.btn.o{background:transparent;color:var(--ink);border-color:var(--ink)}
+.btn.o:hover{background:var(--sheet-2)}
+.btn.sm{min-height:44px;padding:0 14px;font-size:14px}
+.btn:disabled{opacity:.45;pointer-events:none}
+.btn .ic{width:16px;height:16px}
+.wide-btn{width:100%}
+.link{color:var(--accent);text-decoration:underline;text-underline-offset:3px;font-weight:500;min-height:44px;display:inline-flex;align-items:center;gap:6px}
+
+/* ===================== CARDS ===================== */
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.card.flat{box-shadow:none}
+.stars{display:inline-flex;gap:2px;vertical-align:-2px;flex:none}
+.stars svg{width:14px;height:14px}
+.stars .on{fill:var(--hall);stroke:var(--hall)}
+.stars .off{fill:none;stroke:var(--rule)}
+[data-theme=night] .stars .off{stroke:var(--ink-2);opacity:.5}
+
+/* ===================== HOME / CAMPUS ===================== */
+.welcome h1{margin:4px 0 8px}
+.cont{display:flex;align-items:center;gap:14px;text-align:left;width:100%;border-left:3px solid var(--hall)}
+.cont .t{flex:1;min-width:0}
+.cont h2{margin:4px 0 2px}
+.cont .ic{width:22px;height:22px;color:var(--accent)}
+.recap{display:flex;gap:16px;flex-wrap:wrap;margin:4px 0 20px;align-items:center}
+.tally{display:inline-flex;align-items:center;gap:6px}
+.tally svg{height:16px;width:auto;color:var(--ink)}
+.campus{position:relative;width:100%;aspect-ratio:360/1000;margin:8px 0 24px}
+.campus>svg.ground{position:absolute;inset:0;width:100%;height:100%;color:var(--ink-2)}
+.bld{position:absolute;width:38%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 2px 8px;border-radius:4px;transform:translateX(-50%)}
+@media(hover:hover){.bld:hover{background:color-mix(in srgb,var(--sheet) 70%,transparent)}}
+.bld .art{width:78%;max-width:110px;height:auto;color:var(--hall);display:block}
+.bld .nm{font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;line-height:1.2;margin-top:2px}
+.bld .pg{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.bld .pg b{color:var(--hall);font-weight:600}
+.side{display:none}
+.foot{display:grid;gap:12px;margin-top:8px}
+.foot .card{display:flex;align-items:center;gap:14px;margin:0;text-align:left;width:100%}
+.foot .card .art{width:64px;height:64px;color:var(--hall);flex:none}
+.foot .card .t{flex:1}
+.foot .card h3{font-size:17px}
+.foot .card p{margin:2px 0 0;font-size:14px;color:var(--ink-2)}
+.resetrow{margin-top:20px;text-align:center}
+.resetrow button{font-size:13px;color:var(--ink-2);text-decoration:underline;min-height:44px}
+
+/* ===================== BUILDING ===================== */
+.banner{display:block;width:100%;height:auto;color:var(--hall);margin:-4px 0 4px}
+.bhead h1{margin:6px 0 6px}
+.bhead .label{color:var(--hall)}
+.prule{height:2px;background:var(--rule);margin:14px 0;position:relative}
+.prule i{position:absolute;left:0;top:-1px;height:4px;background:var(--hall)}
+.exlist{border-top:1px solid var(--rule);margin-top:20px}
+.ex{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 4px;border-bottom:1px solid var(--rule);min-height:56px}
+.ex:hover{background:var(--sheet-2)}
+.ex .n{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--hall);width:24px;flex:none}
+.ex .t{flex:1;min-width:0}
+.ex .t b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
+.ex .t span{display:block;font-size:15px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===================== LECTURE NOTES ===================== */
+.lesson{max-width:62ch}
+.lesson h2{margin:6px 0 12px}
+.lesson p,.lesson li{font-size:16px;line-height:1.65}
+.lesson ul,.lesson ol{padding-left:22px;margin:8px 0 12px}
+.lesson b{color:var(--hall);font-weight:600}
+.notes-side{display:none}
+code,.code{font-family:var(--mono);font-size:.88em}
+code{background:var(--sheet-2);padding:1px 5px;border-radius:2px;border:1px solid var(--rule)}
+pre{background:var(--sheet-2);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink);margin:10px 0;white-space:pre}
+pre code{border:0;padding:0;background:none}
+
+/* ER figures: restyle the authored SVG so it reads as printed ink */
+.fig{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px;margin-top:14px}
+.fig svg{display:block;width:100%;height:auto}
+.fig svg rect{fill:var(--sheet-2);stroke:var(--ink)}
+.fig svg line,.fig svg path{stroke:var(--ink)}
+.fig svg circle{fill:var(--sheet);stroke:var(--ink)}
+.fig svg text{fill:var(--ink);font-family:var(--sans)}
+
+/* ===================== WORKSHEET ===================== */
+.ws{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);padding:20px 16px 22px 44px;margin-bottom:16px}
+.ws::before{content:"";position:absolute;top:0;bottom:0;left:28px;width:1px;background:var(--redpen);opacity:.28}
+.ws .mnum{position:absolute;left:0;width:28px;top:22px;text-align:center;font:600 11px/1 var(--mono);color:var(--hall)}
+.ws .mmark{position:absolute;left:1px;width:26px;height:26px;top:50px;pointer-events:none}
+.ws .mmark svg{width:100%;height:100%;overflow:visible}
+.tag{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hall);margin-bottom:8px}
+.q{font-size:18px;line-height:1.5;font-weight:500;margin:0}
+.q b{font-weight:600}
+.qsub{color:var(--ink-2);font-size:15px;margin:8px 0 0;line-height:1.5}
+.anno{position:absolute;top:-16px;right:10px;z-index:2;transform:rotate(-2deg);background:var(--sheet);border:1px solid var(--rule);box-shadow:0 4px 12px -6px rgba(0,0,0,.25);
+  padding:2px 12px 4px;font:600 22px/1.15 var(--hand);color:var(--tick);max-width:70%;pointer-events:none}
+.anno.bad{color:var(--redpen)}
+.anno .uline{display:block;height:7px;margin-top:-2px}
+.anno .uline svg{width:100%;height:7px;display:block}
+.hint{margin-top:16px;padding:8px 0 0 12px;border-left:2px solid var(--pencil);font:600 20px/1.3 var(--hand);color:var(--ink-2)}
+.hint .label{display:block;font-size:10.5px;margin-bottom:2px;color:var(--ink-2)}
+
+/* MCQ */
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.opt{display:flex;align-items:flex-start;gap:12px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;text-align:left;font-size:15.5px;line-height:1.45;min-height:52px;transition:border-color .15s,background-color .15s;position:relative}
+.opt:hover{background:var(--sheet-2)}
+.opt .k{width:28px;height:28px;flex:none;display:grid;place-items:center;border:1px solid var(--rule);border-radius:2px;font:600 13px/1 var(--mono);color:var(--ink-2);margin-top:-2px}
+.opt .ot{flex:1;min-width:0}
+.opt.sel{border-color:var(--hall);box-shadow:inset 0 0 0 1px var(--hall)}
+.opt.sel .k{background:var(--hall);border-color:var(--hall);color:var(--sheet)}
+.opt.right{border-color:var(--tick);box-shadow:inset 0 0 0 1px var(--tick)}
+.opt.right .k{background:var(--tick);border-color:var(--tick);color:var(--sheet)}
+.opt.wrong{border-color:var(--redpen)}
+.opt.wrong .k{background:transparent;border-color:var(--redpen);color:var(--redpen)}
+.opt.wrong .ot{text-decoration:line-through;text-decoration-color:var(--redpen);text-decoration-thickness:2px}
+.opt.wrong .ot,.opt.wrong .ot *{color:var(--ink-2)}
 .opt code{font-size:13px}
-.sortItem{background:var(--card2);border-radius:14px;padding:11px 12px;margin-top:10px;border:2px solid transparent}
-.sortItem.bad{border-color:var(--red)}
-.sortItem.good{border-color:var(--green)}
-.sortItem .lab{font-weight:800;margin-bottom:8px}
-.chips{display:flex;flex-wrap:wrap;gap:7px}
-.chip{padding:7px 11px;border-radius:99px;background:#0d1b30;border:1.5px solid var(--line);font-weight:700;font-size:13.5px}
-.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
-.buildZone{min-height:58px;background:#0b1626;border:2px dashed var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:12px}
-.buildZone.bad{border-color:var(--red)}
-.tok{font-family:var(--mono);font-size:15px;padding:8px 11px;border-radius:10px;background:var(--card2);border:1.5px solid var(--line);font-weight:600}
+
+/* sort / build */
+.sortItem{background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--rule);border-radius:4px;padding:12px 14px;margin-top:10px}
+.sortItem.bad{border-left-color:var(--redpen)}
+.sortItem.good{border-left-color:var(--tick)}
+.sortItem .lab{font-weight:500;margin-bottom:10px;line-height:1.4}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 12px;border-radius:2px;border:1px solid var(--rule);background:var(--sheet-2);font-size:14px;font-weight:500}
+.chip.on{background:var(--hall);border-color:var(--hall);color:var(--sheet)}
+.buildZone{min-height:60px;background:var(--sheet-2);border:1px dashed var(--ink-2);border-radius:4px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:16px}
+.buildZone.bad{border-color:var(--redpen)}
+.tok{font-family:var(--mono);font-size:14.5px;min-height:40px;padding:0 12px;border-radius:2px;background:var(--sheet);border:1px solid var(--ink-2);font-weight:600}
 .tok.used{opacity:.2;pointer-events:none}
 .bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-textarea.ed{width:100%;min-height:120px;background:#0b1626;color:#e6f1ff;border:2px solid var(--line);border-radius:14px;padding:12px;font-family:var(--mono);font-size:14.5px;line-height:1.5;resize:vertical;outline:none;margin-top:12px}
-textarea.ed:focus{border-color:var(--blue)}
-.keys{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+
+/* editor */
+textarea.ed{display:block;width:100%;min-height:128px;background:var(--sheet-2);color:var(--ink);border:1px solid var(--rule);border-left:2px solid var(--rule);border-radius:4px;padding:12px 14px;
+  font-family:var(--mono);font-size:14.5px;line-height:1.55;resize:vertical;margin-top:16px;transition:border-color .15s}
+textarea.ed:focus{border-left-color:var(--hall);outline:2px solid var(--accent);outline-offset:2px}
+textarea.ed::placeholder{color:var(--ink-2);opacity:.8}
+.engine{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-top:14px}
+.keys{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
 .keys::-webkit-scrollbar{display:none}
-.key{flex:none;font-family:var(--mono);font-size:13px;padding:7px 10px;border-radius:9px;background:var(--card2);border:1px solid var(--line);font-weight:600;color:#bfe0ff}
-.out{margin-top:10px}
-.out .lbl{font-size:12px;font-weight:800;color:var(--mute);text-transform:uppercase;letter-spacing:.6px;margin:10px 0 4px}
-.tbl{overflow:auto;border-radius:12px;border:1px solid var(--line);max-height:300px}
-table{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)}
-th,td{padding:7px 10px;border-bottom:1px solid #22385a;text-align:left;white-space:nowrap}
-th{background:#1a3152;color:var(--gold);position:sticky;top:0}
-td{background:#0f1f35}
-.err{background:#3d1820;border:1px solid #7a2c3a;color:#ffc2ca;border-radius:12px;padding:10px 12px;font-family:var(--mono);font-size:13px;margin-top:10px;white-space:pre-wrap}
-.ok{background:#123a28;border:1px solid #237a4f;color:#b9f5d4;border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
-.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%);z-index:5}
+.key{flex:none;font-family:var(--mono);font-size:13px;min-height:40px;min-width:40px;padding:0 10px;border-radius:2px;background:var(--sheet);border:1px solid var(--rule);border-bottom-width:2px;font-weight:600;color:var(--ink)}
+.key:active{transform:translateY(1px);border-bottom-width:1px}
+.squig{height:7px;margin-top:6px;background:var(--redpen);animation:draw .45s ease-out both;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 3.5Q3 0 6 3.5T12 3.5' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x left center;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 3.5Q3 0 6 3.5T12 3.5' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x left center}
+@keyframes draw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+
+/* output */
+.out{margin-top:6px}
+.out .lbl{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 6px}
+.tbl{overflow:auto;border:1px solid var(--rule);border-radius:4px;max-height:320px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono);font-variant-numeric:tabular-nums}
+th,td{padding:7px 12px;border-bottom:1px solid var(--rule);text-align:left;white-space:nowrap}
+th{background:var(--sheet-2);color:var(--ink-2);position:sticky;top:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+tr:last-child td{border-bottom:0}
+.rows{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:6px}
+.err,.ok{display:flex;gap:10px;align-items:flex-start;background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--redpen);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;word-break:break-word}
+.err .ic{color:var(--redpen);margin-top:1px}
+.ok{border-left-color:var(--tick);font-family:var(--sans);font-size:14px;white-space:normal}
+.ok .ic{color:var(--tick);margin-top:1px}
+
+/* marker's note */
+.note{scroll-margin:84px 0 96px;border-top:1px solid var(--rule);margin:4px 0 16px;padding:16px 4px 0;animation:rise .3s ease-out both}
+.note .label{color:var(--tick);display:flex;align-items:center;gap:6px}
+.note.bad .label{color:var(--redpen)}
+.note .nb{margin-top:8px;font-size:15.5px;line-height:1.6}
+.note .stats{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}}
+
+/* dock */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--paper);border-top:1px solid var(--rule);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
 .dock .in{max-width:720px;margin:0 auto;display:flex;gap:10px}
+body.wide .dock .in{max-width:1240px;justify-content:flex-end}
 .dock .btn{flex:1}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:10;transform:translateY(110%);transition:transform .28s cubic-bezier(.2,.9,.3,1.1)}
-.sheet.show{transform:none}
-.sheet .in{max-width:720px;margin:0 auto;border-radius:22px 22px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:72vh;overflow:auto}
-.sheet.good .in{background:#123d2a;border-top:3px solid var(--green)}
-.sheet.bad .in{background:#40182a;border-top:3px solid var(--red)}
-.sheet h3{font-size:22px;margin-bottom:6px}
-.sheet p{margin:6px 0 14px;line-height:1.5;font-size:15px;color:#e8f0ff}
-.hintBox{background:#2b2a12;border:1px solid #6d6420;color:#ffeaa0;border-radius:12px;padding:10px 12px;margin-top:12px;font-size:14.5px;line-height:1.45}
-.fig{background:#f6f9ff;border-radius:14px;padding:8px;margin-top:12px}
-.fig svg{display:block;width:100%;height:auto}
-.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-120px);background:var(--gold);color:#3a2a00;font-weight:800;padding:10px 18px;border-radius:99px;z-index:20;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.35)}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.tabs{display:flex;gap:8px;margin-bottom:12px}
-.tabs button{flex:1;padding:10px;border-radius:12px;background:var(--card);font-weight:800;border:1.5px solid var(--line)}
-.tabs button.on{background:var(--blue);border-color:var(--blue)}
-details{margin-top:10px}
-summary{cursor:pointer;font-weight:800;color:var(--teal);font-size:14px}
-.big{font-size:56px;text-align:center;margin:10px 0}
-.center{text-align:center}
-.muted{color:var(--mute)}
-.confetti{position:fixed;inset:0;pointer-events:none;z-index:30;overflow:hidden}
-.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 1.4s ease-in forwards}
-@keyframes fall{to{transform:translateY(105vh) rotate(720deg);opacity:.7}}
-.shake{animation:shake .35s}
-@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
-.loading{padding:40px;text-align:center;color:var(--mute)}
-u{text-decoration-thickness:2px;text-underline-offset:3px}
+body.wide .dock .btn{flex:0 1 360px}
+.dock .hbtn{width:48px;height:48px;border:1px solid var(--ink);border-radius:4px}
+
+/* toast */
+.toast{position:fixed;top:70px;left:50%;transform:translate(-50%,-12px);opacity:0;pointer-events:none;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:13px;font-weight:600;padding:10px 16px;border-radius:2px;z-index:20;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* tabs (workshop) */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--rule);margin-bottom:16px}
+.tabs button{flex:1;min-height:44px;font-family:var(--mono);font-size:12.5px;font-weight:600;letter-spacing:.08em;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--accent)}
+
+/* certificate & transcript */
+.cert{position:relative;text-align:center;padding:28px 22px;border:1px solid var(--ink);outline:1px solid var(--ink);outline-offset:-7px}
+.cert .crest{color:var(--accent);margin:0 auto 6px;display:block}
+.cert .art{width:120px;height:auto;color:var(--hall);display:block;margin:8px auto}
+.cert h1{margin:6px 0}
+.cert .aw{font-family:var(--display);font-size:15px;color:var(--ink-2);margin:10px 0 2px}
+.cert .meta{display:flex;justify-content:center;gap:18px;flex-wrap:wrap;margin:14px 0 4px}
+.cover{text-align:center;padding:28px 20px}
+.cover .art{width:120px;height:auto;display:block;margin:0 auto 10px;color:var(--ink)}
+.cover dl{display:grid;grid-template-columns:auto auto;gap:4px 14px;justify-content:center;margin:16px 0 22px;font-family:var(--mono);font-size:13px}
+.cover dt{color:var(--ink-2);text-align:right}
+.cover dd{margin:0;text-align:left;font-weight:600}
+.grade{width:132px;height:132px;margin:8px auto 10px;border:2px solid var(--accent);border-radius:50%;display:grid;place-items:center;position:relative;transform:rotate(-6deg);color:var(--accent)}
+.grade::before{content:"";position:absolute;inset:6px;border:1px solid var(--accent);border-radius:50%}
+.grade b{font-family:var(--display);font-size:72px;line-height:1;font-weight:700}
+.grade small{position:absolute;bottom:18px;font-family:var(--mono);font-size:9px;letter-spacing:.14em}
+.transcript td,.transcript th{white-space:normal}
+.transcript td:last-child,.transcript th:last-child{text-align:right}
+
+/* shortcuts overlay */
+.kbd{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:20px}
+.kbd .card{max-width:380px;width:100%}
+.kbd dl{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;margin:12px 0 0;font-size:14px}
+.kbd dt{font-family:var(--mono);font-size:12.5px;font-weight:600}
+.kbd dd{margin:0;color:var(--ink-2)}
+
+.loading{padding:60px 20px;text-align:center;color:var(--ink-2);font-family:var(--mono);font-size:13px}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.draw path{stroke-dasharray:80;stroke-dashoffset:80;animation:pen .38s ease-out forwards}
+.draw path+path{animation-delay:.25s}
+@keyframes pen{to{stroke-dashoffset:0}}
+
+
+[hidden]{display:none!important}
+svg .k{fill:var(--sheet)}
+.bld .cap{display:flex;flex-direction:column;align-items:center;background:var(--paper);padding:0 6px;border-radius:2px;position:relative}
+.bld .pen{position:absolute;top:2px;right:20%;width:14px;height:20px;color:var(--ink)}
+.desk-only{display:none}
+.solo{max-width:860px;margin:0 auto}
+.main{min-width:0}
+@media(min-width:1024px){.desk-only{display:inline-flex}}
+
+/* ===================== DESKTOP ===================== */
+@media(min-width:1024px){
+  body.wide #app{max-width:1240px}
+  .playgrid{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:32px;align-items:start}
+  .notes-side{display:block;position:sticky;top:84px;max-height:calc(100vh - 190px);overflow:auto;padding-right:8px}
+  .notes-side .lesson{border-top:1px solid var(--rule);padding:16px 0 4px}
+  .notes-side .lesson h2{font-size:17px;margin:4px 0 8px}
+  .notes-side .lesson p,.notes-side .lesson li{font-size:14.5px;line-height:1.6}
+  .ws{padding:28px 184px 28px 72px}
+  .ws::before{left:56px}
+  .ws .mnum{width:56px;top:30px;font-size:13px}
+  .ws .mmark{left:13px;width:30px;height:30px;top:62px}
+  .anno{top:58px;right:14px;width:156px;max-width:none;background:none;border:0;box-shadow:none;transform:rotate(-3deg);padding:0;font-size:24px}
+  body.wide.home #app{max-width:1040px}
+  .homegrid{display:grid;grid-template-columns:minmax(0,480px) 1fr;gap:40px;align-items:start}
+  .side{display:block;position:sticky;top:84px}
+  .bld.focus{background:color-mix(in srgb,var(--sheet) 70%,transparent);outline:1px solid var(--rule)}
+  .side .art{width:100%;height:auto;color:var(--hall)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;transition-duration:.001ms!important}
+  .draw path{stroke-dashoffset:0}
+}
 </style>
 </head>
 <body>
-<div id="app"><div class="loading">Loading the yard…</div></div>
-<div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
-<div class="toast" id="toast"></div>
-
+<header id="hdr"></header>
+<main id="app"><div class="loading">Unlocking the campus…</div></main>
+<div class="dock" id="dock" hidden><div class="in" id="dockIn"></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="sr" id="live" aria-live="polite"></div>
 <script>
 // We are modularizing this manually because the current modularize setting in Emscripten has some issues:
 // https://github.com/kripken/emscripten/issues/5820
@@ -399,7 +603,7 @@ function crowSym(type){
   return s;
 }
 function crow(a,b,rel,leftEnd,rightEnd){
-  return `<svg viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg" font-family="Nunito,sans-serif">
+  return `<svg viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
   <rect x="8" y="25" width="102" height="40" rx="6" fill="#dbe9ff" stroke="#1c2b45" stroke-width="2"/>
   <rect x="290" y="25" width="102" height="40" rx="6" fill="#dbe9ff" stroke="#1c2b45" stroke-width="2"/>
   <text x="59" y="50" text-anchor="middle" font-weight="800" font-size="13" fill="#1c2b45">${a}</text>
@@ -415,7 +619,7 @@ function crow(a,b,rel,leftEnd,rightEnd){
    WORLDS, LESSONS, CHALLENGES
    ===================================================================== */
 const WORLDS = [
-{ id:'er', name:'ER Bay', ico:'🏝️', color:'linear-gradient(135deg,#0fa3a3,#0b6f8a)', blurb:'Entities, attributes, relationships & cardinality', unit:'Units 1–3',
+{ id:'er', name:'ER Bay', blurb:'Entities, attributes, relationships & cardinality', unit:'Units 1–3',
  lessons:[
   ['What is an ER model?', `<p>An <b>Entity-Relationship (ER) model</b> is a picture of the data a business needs, drawn <i>before</i> you build any tables. It lives at the <b>conceptual level</b> of the ANSI/SPARC architecture.</p>
    <ul><li><b>Entity</b>: a thing you store data about (noun). <code>STUDENT</code>, <code>COURSE</code></li>
@@ -479,7 +683,7 @@ const WORLDS = [
   {type:'mcq', q:'Which is a DISADVANTAGE of the traditional file system compared to a DBMS?', opts:['Centralized control','Data redundancy and inconsistency','Concurrent access control','Enforced integrity constraints'], a:1,
    why:'File systems duplicate data across separate files, so copies get out of sync. The other options are DBMS advantages.'}
  ]},
-{ id:'rel', name:'Relation Ridge', ico:'📐', color:'linear-gradient(135deg,#7b5cff,#4b2fb3)', blurb:'Relational notation, keys, integrity, normalization, algebra', unit:'Units 4–5',
+{ id:'rel', name:'Relation Ridge', blurb:'Relational notation, keys, integrity, normalization, algebra', unit:'Units 4–5',
  lessons:[
   ['Relational notation', `<p>Write each table as <b>NAME(attributes)</b>. <u>Underline</u> the primary key and mark foreign keys with <b>*</b> (or <i>italics</i>, depending on your lecturer).</p>
    <pre>STUDENT(<u>StudentID</u>, FName, LName, Major)
@@ -549,13 +753,13 @@ ENROLMENT(<u>StudentID*</u>, <u>CourseCode*</u>, Grade)</pre>`],
    opts:['Every student’s GPA','Names of students with GPA above 3.5','Number of students','Students with GPA at most 3.5'], a:1,
    why:'The target list (t.Name) comes before |. The qualifying statement comes after it: t is a STUDENT and GPA > 3.5.'}
  ]},
-{ id:'sql', name:'SQL Lab', ico:'🧪', color:'linear-gradient(135deg,#ff8a3c,#d9480f)', blurb:'Live SQLite: SELECT, JOIN, GROUP BY, INSERT, CREATE…', unit:'Unit 7',
+{ id:'sql', name:'SQL Lab', blurb:'Live SQLite: SELECT, JOIN, GROUP BY, INSERT, CREATE…', unit:'Unit 7',
  lessons:[
   ['The lab database', `<p>This SQL runs on a <b>real SQLite engine inside the page</b>. There is nothing to install. Tables:</p>
    <pre>student(id, fname, lname, major, gpa, year, parish)
 course(code, title, credits, lecturer)
 enrolment(student_id, course_code, grade, score)</pre>
-   <p>Tap <b>🗂 Tables</b> in any SQL challenge to peek at the data.</p>`],
+   <p>Tap <b>Tables</b> in any SQL challenge to peek at the data.</p>`],
   ['SELECT skeleton', `<pre>SELECT columns        -- what
 FROM table            -- where from
 WHERE condition       -- which rows
@@ -586,7 +790,7 @@ CREATE TABLE lecturer(
   name TEXT NOT NULL,
   dept TEXT);
 ALTER TABLE student ADD COLUMN email TEXT;</pre>
-   <p>⚠️ An UPDATE or DELETE <b>without WHERE</b> hits every row.</p>`]
+   <p><b>Careful:</b> an UPDATE or DELETE <b>without WHERE</b> hits every row.</p>`]
  ],
  ch:[
   {type:'sql', q:'Show everything in the student table.', expect:'SELECT * FROM student;', hint:'SELECT * FROM …', why:'<code>SELECT *</code> returns every column, and with no WHERE you get every row.'},
@@ -606,7 +810,7 @@ ALTER TABLE student ADD COLUMN email TEXT;</pre>
   {type:'sql', dml:true, q:'Create a table <code>lecturer</code> with: lec_id (INTEGER, primary key), name (TEXT, NOT NULL), dept (TEXT).', html:true, expect:'CREATE TABLE lecturer(lec_id INTEGER PRIMARY KEY, name TEXT NOT NULL, dept TEXT);', check:"SELECT name, upper(type) AS type, \"notnull\", pk FROM pragma_table_info('lecturer');", hint:'CREATE TABLE lecturer( col TYPE constraints, … );', why:'This is DDL: it defines structure. PRIMARY KEY enforces entity integrity, and NOT NULL forbids empty values.'},
   {type:'sql', dml:true, q:'Add a column <code>email</code> (TEXT) to the student table.', html:true, expect:'ALTER TABLE student ADD COLUMN email TEXT;', check:"SELECT name FROM pragma_table_info('student');", hint:'ALTER TABLE … ADD COLUMN …', why:'ALTER TABLE changes an existing table’s structure without losing its data.'}
  ]},
-{ id:'mongo', name:'Mongo Market', ico:'🍃', color:'linear-gradient(135deg,#2bd67b,#118a4c)', blurb:'Documents, find(), operators, embedded data', unit:'Unit 6 · NoSQL',
+{ id:'mongo', name:'Mongo Market', blurb:'Documents, find(), operators, embedded data', unit:'Unit 6 · NoSQL',
  lessons:[
   ['SQL vs MongoDB', `<ul><li>Table → <b>Collection</b> · Row → <b>Document</b> · Column → <b>Field</b></li>
    <li>Documents are JSON-like (BSON) and can <b>embed</b> objects and arrays.</li>
@@ -651,7 +855,7 @@ db.students.deleteOne({ _id: 3 })</pre>`],
   {type:'mcq', q:'Each course is taken by thousands of students and its details change often. Inside student documents, you should…', opts:['Embed full course details in every student','Reference courses by code/_id','Store courses as XML','Use one giant document'], a:1,
    why:'Data that is shared, large or often updated should be referenced. Embedding it would duplicate it thousands of times, which is the same redundancy problem as in relational design.'}
  ]},
-{ id:'json', name:'JSON Junction', ico:'🧾', color:'linear-gradient(135deg,#ffc83d,#e08a00)', blurb:'Syntax, data types, fixing & writing JSON', unit:'Unit 6',
+{ id:'json', name:'JSON Junction', blurb:'Syntax, data types, fixing & writing JSON', unit:'Unit 6',
  lessons:[
   ['JSON rules', `<ul><li>Objects <code>{ }</code> hold <b>"key": value</b> pairs. Keys must be in <b>double quotes</b>.</li>
    <li>Arrays <code>[ ]</code> hold ordered values.</li>
@@ -693,7 +897,7 @@ data.courses[1].grade   → second course's grade</pre><p>Arrays count from <b>0
   {type:'mcq', q:'Best reason to choose JSON over XML for a mobile app’s API?', opts:['JSON supports comments','JSON is lighter and maps directly to JavaScript objects','JSON has stronger schema validation','JSON allows mixed text and tags'], a:1,
    why:'JSON is compact and parses natively in JS. XML is stronger for documents and strict schemas.'}
  ]},
-{ id:'xml', name:'XML Cove', ico:'🏷️', color:'linear-gradient(135deg,#ff7ac6,#c0307f)', blurb:'Well-formed XML, elements vs attributes, trees', unit:'Unit 6',
+{ id:'xml', name:'XML Cove', blurb:'Well-formed XML, elements vs attributes, trees', unit:'Unit 6',
  lessons:[
   ['XML rules (well-formed)', `<ul><li>Exactly <b>one root element</b>.</li><li>Every opening tag has a closing tag (or is self-closing <code>&lt;br/&gt;</code>).</li>
    <li>Tags are <b>case-sensitive</b>: <code>&lt;Name&gt;…&lt;/name&gt;</code> is wrong.</li>
@@ -891,146 +1095,326 @@ function runMongo(src,colls){
 }
 
 /* =====================================================================
-   UI HELPERS
+   BRAND, HALLS, ICONS, ART
    ===================================================================== */
+const APP_NAME='Normal Form';
+const TAGLINE='A campus for database design.';
+const HALLS={
+  er:   {hall:'Chen Hall',            short:'Chen',        topic:'Entities, relationships, diagrams'},
+  rel:  {hall:'Codd Hall',            short:'Codd',        topic:'Relations, keys, normal forms, algebra'},
+  sql:  {hall:'Boyce Laboratory',     short:'Boyce Lab',   topic:'Live SQL'},
+  mongo:{hall:'Merriman Market Hall', short:'Market Hall', topic:'Documents and queries'},
+  json: {hall:'Crockford House',      short:'Crockford',   topic:'JSON syntax and structure'},
+  xml:  {hall:'Goldfarb Archive',     short:'Archive',     topic:'XML, XPath, older data models'}
+};
+WORLDS.forEach(w=>Object.assign(w,HALLS[w.id],{ink:`var(--h-${w.id})`}));
+
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const app=$('#app');
-function starStr(n){return `<span class="stars">${[1,2,3].map(i=>i<=n?'★':'<span class="off">★</span>').join('')}</span>`;}
+const pad=n=>String(n).padStart(2,'0');
+const fmt=n=>Number(n).toLocaleString('en-US');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const reduced=()=>window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+let UID=0;
+
+const IC={
+  back:'<path d="m15 18-6-6 6-6"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  pencil:'<path d="M21.17 6.81a1 1 0 0 0-3.99-3.99L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="m15 5 4 4"/>',
+  play:'<path d="M7 4.5v15l12-7.5z"/>',
+  table:'<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 10h18M3 15h18M9.5 4v16"/>',
+  target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  docs:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M8 13h8M8 17h6"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>',
+  reset:'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  convert:'<path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/>',
+  flame:'<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  book:'<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2zM22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+  keyboard:'<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M8 13h.01M12 13h.01M16 13h.01M7 16h10"/>'
+};
+function icon(n,cls='ic'){return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${IC[n]}</svg>`;}
+
+const STAR='M8 1.5l1.9 4.3 4.6.4-3.5 3 1.1 4.6L8 11.4l-4.1 2.4 1.1-4.6-3.5-3 4.6-.4z';
+function starStr(n){return `<span class="stars" role="img" aria-label="${n} of 3 marks">${[1,2,3].map(i=>`<svg viewBox="0 0 16 16" aria-hidden="true"><path class="${i<=n?'on':'off'}" d="${STAR}" stroke-width="1.1" stroke-linejoin="round"/></svg>`).join('')}</span>`;}
+function star1(){return `<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true" style="vertical-align:-1px"><path d="${STAR}" style="fill:var(--hall);stroke:var(--hall)" stroke-width="1.1" stroke-linejoin="round"/></svg>`;}
+function tally(n){n=Math.max(0,Math.min(n,7));if(!n)return '';let p='';
+  for(let i=1;i<=n;i++){if(i<=4)p+=`M${2+4*(i-1)} 2v12`;else if(i===5)p+='M0 12L16 4';else p+=`M${22+4*(i-6)} 2v12`;}
+  const w=n<=4?4*n:n===5?17:24+4*(n-6);
+  return `<svg viewBox="0 0 ${w} 16" width="${w}" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="${p}"/></svg>`;}
+
+/* crest: shield with a database cylinder; full=true adds the lettered ring */
+function crest(size,full=false){const id='ring'+(++UID);
+  const shield=`<g transform="translate(12 11.5)"><path d="M20 2 36 7v13c0 10-7 16-16 19C11 36 4 30 4 20V7Z" stroke-width="1.6"/><path d="M8 9.5v10.5c0 7 4.5 11.5 12 14.5" stroke-width=".7" opacity=".6"/>
+    <ellipse cx="20" cy="14" rx="8" ry="3"/><path d="M12 14v11a8 3 0 0 0 16 0V14M12 19.5a8 3 0 0 0 16 0"/></g>`;
+  return full
+   ?`<svg class="crest" viewBox="0 0 64 64" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="32" cy="32" r="30.5"/><circle cx="32" cy="32" r="22.5"/>
+      <defs><path id="${id}" d="M32 5.5a26.5 26.5 0 1 1 0 53a26.5 26.5 0 1 1 0-53"/></defs>
+      <text style="font:600 4.6px var(--mono);fill:currentColor;stroke:none" textLength="162" lengthAdjust="spacing"><textPath href="#${id}">${APP_NAME.toUpperCase()} · EST. 1970 · DATABASE DESIGN ·</textPath></text>${shield}</svg>`
+   :`<svg class="crest" viewBox="13 10 38 44" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${shield}</svg>`;
+}
+
+/* engraved building vignettes, 96x96. H = light hatch, D = dense hatch */
+const ART={
+  er:(H,D)=>`<path class="k" d="M10 40h26v46H10zM60 40h26v46H60z"/><path d="M30 40h6v46h-6zM80 40h6v46h-6z" fill="${H}" stroke="none"/><path d="M10 40h26v46H10zM60 40h26v46H60z"/>
+    <path class="k" d="M7 40 23 27l16 13zM57 40l16-13 16 13z"/><path d="M7 40 23 27l16 13zM57 40l16-13 16 13z" fill="${H}"/>
+    <path class="k" d="M36 58h24v14H36z"/><path d="M36 58h24v4H36z" fill="${D}"/><path d="M36 58h24v14H36zM40 72v14M56 72v14M41 66h14"/>
+    <path d="M23 46l5 5-5 5-5-5zM73 46l5 5-5 5-5-5z" fill="${D}"/><path d="M19 72h8v14h-8zM69 72h8v14h-8z" fill="${D}"/><path d="M13 62h4v5h-4zM25 62h4v5h-4zM63 62h4v5h-4zM75 62h4v5h-4z"/>`,
+  rel:(H,D)=>`<path d="M12 45h72v35H12z" fill="${D}" stroke="none"/>`
+    +[16,30,44,58,72].map(x=>`<path class="k" d="M${x} 45h8v35h-8z"/><path d="M${x+5} 45h3v35h-3z" fill="${H}" stroke="none"/><path d="M${x} 45h8v35h-8zM${x-1} 42h10v3h-10zM${x+2.5} 48v29"/>`).join('')
+    +`<path class="k" d="M10 36 48 18l38 18z"/><path d="M10 36 48 18l38 18z" fill="${H}"/><path class="k" d="M21 33.5 48 21.5l27 12z"/><path d="M21 33.5 48 21.5l27 12z"/>
+    <path class="k" d="M10 36h76v6H10z"/><path d="M10 36h76v6H10zM10 39h76"/><path d="M14 57h68M14 69h68" stroke-dasharray="2 3" stroke-width=".8"/>
+    <path class="k" d="M8 80h80v3H8zM6 83h84v3.5H6z"/><path d="M8 80h80v3H8zM6 83h84v3.5H6z"/>`,
+  sql:(H,D)=>`<path class="k" d="M12 38h66v48H12z"/><path d="M78 54h10v32H78z" fill="${H}"/><path d="M12 38h66v48H12zM9 38h72"/>
+    <path class="k" d="M64 13h6v10l7 12v3H57v-3l7-12z"/><path d="M58 32h18v6H58z" fill="${D}" stroke="none"/><path d="M64 13h6v10l7 12v3H57v-3l7-12zM62 13h10"/><path d="M67 9c3-2 3-4 0-6" stroke-width=".9"/>`
+    +[0,1,2].map(r=>[0,1,2,3].map(c=>`<path ${((r+c)%3===0)?`fill="${D}"`:'class="k"'} d="M${17+c*13} ${44+r*10}h8v6h-8z"/><path d="M${17+c*13} ${44+r*10}h8v6h-8z"/>`).join('')).join('')
+    +`<path d="M40 72h10v14H40z" fill="${D}"/><path d="M38 72h14"/>`,
+  mongo:(H,D)=>`<path class="k" d="M10 40h76v46H10z"/><path class="k" d="M40 24v-6h16v6"/><path d="M40 18h16M44 18v5M48 18v5M52 18v5M40 18v5M56 18v5"/>
+    <path class="k" d="M6 40 48 22l42 18z"/><path d="M6 40 48 22l42 18z" fill="${H}"/><path d="M10 40h76v46H10zM10 46h76"/>`
+    +[16,38,60].map(x=>`<path d="M${x} 86V60a10 10 0 0 1 20 0v26z" fill="${D}"/>`).join('')
+    +`<path class="k" d="M20 77h9v9h-9zM45 73h10v13H45zM65 78h9v8h-9zM68 71h7v7h-7z"/><path d="M20 77h9v9h-9zM45 73h10v13H45zM65 78h9v8h-9zM68 71h7v7h-7zM20 81.5h9M50 73v13M65 82h9"/>`,
+  json:(H,D)=>`<path d="M12 86c1-8 7-8 8 0M20 86c1-6 6-6 7 0" /><path class="k" d="M56 10h5v14h-5z"/><path d="M56 10h5v14h-5zM55 10h7"/>
+    <path class="k" d="M30 26h36v60H30z"/><path d="M60 26h6v60h-6z" fill="${H}" stroke="none"/><path d="M30 26h36v60H30z"/>
+    <path class="k" d="M27 26 48 8l21 18z"/><path d="M27 26 48 8l21 18z" fill="${H}"/>`
+    +[[36,34],[51,34],[36,50],[51,50]].map(([x,y])=>`<path d="M${x} ${y+5}h9v5h-9z" fill="${D}" stroke="none"/><path d="M${x} ${y}h9v10h-9zM${x+4.5} ${y}v10M${x} ${y+5}h9"/>`).join('')
+    +`<path d="M44 68h8v18h-8z" fill="${D}"/><path d="M42 66C39 66 39 68 39 70V74C39 76 38 77 36.5 77C38 77 39 78 39 80V84C39 86 39 87 42 87M54 66C57 66 57 68 57 70V74C57 76 58 77 59.5 77C58 77 57 78 57 80V84C57 86 57 87 54 87" stroke-width="1.5"/>`,
+  xml:(H,D)=>{const pw=(x,y,w,h)=>`M${x} ${y+h}V${y+w/2}L${x+w/2} ${y}L${x+w} ${y+w/2}V${y+h}z`;
+    return `<path class="k" d="M14 58h68v28H14z"/><path d="M76 58h6v28h-6z" fill="${H}" stroke="none"/><path d="M14 58h68v28H14z"/>
+    <path class="k" d="M24 36h48v22H24z"/><path d="M66 36h6v22h-6z" fill="${H}" stroke="none"/><path d="M24 36h48v22H24z"/>
+    <path class="k" d="M34 18h28v18H34z"/><path d="M57 18h5v18h-5z" fill="${H}" stroke="none"/><path d="M34 18h28v18H34z"/>
+    <path d="M44 18 48 8l4 10M48 8V3M12 58h72M22 36h52M32 18h32" stroke-width="1.4"/>
+    <path d="${[pw(20,64,8,16),pw(32,64,8,16),pw(56,64,8,16),pw(68,64,8,16),pw(30,40,8,14),pw(44,40,8,14),pw(58,40,8,14),pw(44,22,8,10)].join('')}" fill="${D}"/>
+    <path d="${pw(43,70,10,16)}" fill="${D}"/><path d="M39 24l-3 3.5 3 3.5M57 24l3 3.5-3 3.5" stroke-width="1.4"/>`;},
+  exam:(H,D)=>`<path class="k" d="M18 44h60v42H18z"/><path d="M18 44h60v42H18zM24 48v38M32 48v38M64 48v38M72 48v38"/>
+    <path class="k" d="M20 44a28 22 0 0 1 56 0z"/><path d="M20 44a28 22 0 0 1 56 0z" fill="${H}"/><path d="M31 44a17 21 0 0 1 34 0M41 44a7 22 0 0 1 14 0" stroke-width=".8"/>
+    <path class="k" d="M44 16h8v7h-8z"/><path d="M44 16h8v7h-8zM48 16v-5M46 11h4M16 44h64" />
+    <circle class="k" cx="48" cy="57" r="8"/><circle cx="48" cy="57" r="8"/><path d="M48 57v-5M48 57l3.5 2"/>
+    <path d="M43 86V75a5 5 0 0 1 10 0v11z" fill="${D}"/>`,
+  shop:(H,D)=>`<path class="k" d="M14 50h68v36H14z"/><path class="k" d="M10 50 48 34l38 16z"/><path d="M10 50 48 34l38 16z" fill="${H}"/><path d="M14 50h68v36H14z"/>
+    <path d="M20 60h32v26H20z" fill="${D}"/><path class="k" d="M23 73h26v3H23z"/><path d="M23 73h26v3H23zM25 76v10M47 76v10M28 73v-4h6v4M38 73l4-6"/>
+    <path d="M66 58v18M61 58h10v4H61zM76 61v13"/><circle cx="76" cy="58.5" r="3"/>`
+};
+const hatchOf=id=>(['exam','shop'].includes(id)?'ink':id);
+function art(id,cls='art'){const c=hatchOf(id);
+  return `<svg class="${cls}" viewBox="0 0 96 96" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">${ART[id](`url(#hx-${c})`,`url(#hd-${c})`)}<path d="M4 86.5H92" stroke-width="1.4"/><path d="M8 90h6M22 90h10M44 90h4M60 90h12M80 90h6" stroke-width=".8" opacity=".6"/></svg>`;}
+function tree(x,b,r,H){return `<path d="M${x} ${b}v-${r}"/><circle class="k" cx="${x}" cy="${b-r*1.6}" r="${r}"/><circle cx="${x}" cy="${b-r*1.6}" r="${r}" fill="${H}"/>`;}
+function banner(id){const c=hatchOf(id),H=`url(#hx-${c})`,D=`url(#hd-${c})`;
+  return `<svg class="banner" viewBox="0 0 320 104" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round">
+    ${tree(40,94,15,H)}${tree(74,94,10,H)}${tree(256,94,13,H)}${tree(286,94,9,H)}
+    <path d="M34 20q3-3 6 0q3-3 6 0M250 28q2.5-2.5 5 0q2.5-2.5 5 0" stroke-width=".9"/>
+    <g transform="translate(108 0) scale(1.083)">${ART[id](H,D)}</g>
+    <path d="M6 94H314" stroke-width="1.4"/><path d="M14 98h10M40 98h18M90 98h6M120 98h20M170 98h8M200 98h16M240 98h12M280 98h18" stroke-width=".8" opacity=".6"/></svg>`;}
+function pennant(){return `<svg class="pen" viewBox="0 0 16 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M2 21V1"/><path d="M2 2l12 4-12 4z" style="fill:var(--hall)"/></svg>`;}
+
+/* hatch patterns, one per building ink, resolved from CSS variables so both themes work */
+document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>${['er','rel','sql','mongo','json','xml','ink'].map(id=>
+  `<pattern id="hx-${id}" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="4" style="stroke:var(--h-${id})" stroke-width=".9"/></pattern>`+
+  `<pattern id="hd-${id}" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="2.4" style="stroke:var(--h-${id})" stroke-width=".9"/></pattern>`).join('')}</defs></svg>`);
+
+/* =====================================================================
+   UI HELPERS
+   ===================================================================== */
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
-function confetti(){const c=document.createElement('div');c.className='confetti';const cols=['#ffc83d','#2bd67b','#4fa3ff','#ff7ac6','#ff9a3c'];
-  for(let i=0;i<40;i++){const p=document.createElement('i');p.style.left=Math.random()*100+'%';p.style.background=cols[i%5];p.style.animationDelay=Math.random()*.4+'s';p.style.animationDuration=(1+Math.random()*.8)+'s';c.appendChild(p);}
-  document.body.appendChild(c);setTimeout(()=>c.remove(),2400);}
-function hideSheet(){$('#sheet').className='sheet';}
+function announce(t){const l=$('#live');l.textContent='';setTimeout(()=>{l.textContent=t;},60);}
 function worldStars(w){return w.ch.reduce((a,c)=>a+(S.stars[c.id]||0),0);}
 function totalStars(){return ALL.reduce((a,c)=>a+(S.stars[c.id]||0),0);}
-function tableHTML(r){if(!r||!r.columns||!r.columns.length)return '<div class="ok">✓ Ran OK (no rows returned)</div>';
-  return `<div class="tbl"><table><tr>${r.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${r.values.map(v=>`<tr>${v.map(x=>`<td>${x===null?'<i class="muted">NULL</i>':esc(x)}</td>`).join('')}</tr>`).join('')}</table></div><div class="muted" style="font-size:12px;margin-top:4px">${r.values.length} row(s)</div>`;}
+function doneCount(w){return w.ch.filter(c=>S.stars[c.id]).length;}
+const OK=m=>`<div class="ok">${icon('check')}<span>${m}</span></div>`;
+const ERR=m=>`<div class="err">${icon('x')}<span>${m}</span></div>`;
+function tableHTML(r){if(!r||!r.columns||!r.columns.length)return OK('Ran OK. No rows returned.');
+  return `<div class="tbl"><table><tr>${r.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${r.values.map(v=>`<tr>${v.map(x=>`<td>${x===null?'<i class="muted">NULL</i>':esc(x)}</td>`).join('')}</tr>`).join('')}</table></div><div class="rows">${r.values.length} row(s)</div>`;}
 function mongoHTML(r){if(r.kind==='count')return `<pre>${r.value}</pre>`;if(r.kind==='msg')return `<pre>${esc(JSON.stringify(r.value,null,2))}</pre>`;
-  return `<pre>${esc(r.value.length?r.value.map(d=>JSON.stringify(d,null,1).replace(/\n\s*/g,' ')).join('\n'):'(no documents)')}</pre><div class="muted" style="font-size:12px">${r.value.length} document(s)</div>`;}
+  return `<pre>${esc(r.value.length?r.value.map(d=>JSON.stringify(d,null,1).replace(/\n\s*/g,' ')).join('\n'):'(no documents)')}</pre><div class="rows">${r.value.length} document(s)</div>`;}
 
-/* keyboard helper bars */
+/* typewriter key bars */
 const KEYS={
   sql:['SELECT','*','FROM','WHERE',',','=',"'",'(',')','AND','OR','ORDER BY','DESC','GROUP BY','HAVING','COUNT(*)','AVG(','JOIN','ON','LEFT JOIN','LIKE','%','.',';','INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE','ALTER TABLE','ADD COLUMN','INTEGER','TEXT','PRIMARY KEY','NOT NULL'],
   mongo:['db.students.find(','{','}',':',',','"','[',']',')','$gt','$gte','$lt','$lte','$ne','$in','$or','$elemMatch','$set','.sort(','.limit(','insertOne(','updateOne(','-1','_id'],
   json:['{','}','[',']','"',':',',','true','false','null'],
   xml:['<','>','</','/>','"','=','<?xml version="1.0"?>']
 };
-function keyBar(kind,taId){return `<div class="keys">${KEYS[kind].map(k=>`<button class="key" data-k="${esc(k)}" data-ta="${taId}">${esc(k)}</button>`).join('')}</div>`;}
+function keyBar(kind,taId){return `<div class="keys" aria-label="Insert symbols">${KEYS[kind].map(k=>`<button class="key" data-k="${esc(k)}" data-ta="${taId}">${esc(k)}</button>`).join('')}</div>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('.key');if(!b)return;const ta=document.getElementById(b.dataset.ta);if(!ta)return;
   let k=b.dataset.k;const s=ta.selectionStart,en=ta.selectionEnd,v=ta.value;
   if(/^[A-Z]/.test(k)&&k.length>1)k=(s>0&&!/\s|\($/.test(v[s-1])?' ':'')+k+' ';
   ta.value=v.slice(0,s)+k+v.slice(en);ta.selectionStart=ta.selectionEnd=s+k.length;ta.focus();});
 const edAttrs='autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"';
 
+/* ---------- theme ---------- */
+const isNight=()=>document.documentElement.getAttribute('data-theme')==='night';
+function applyTheme(){let t=S.theme||'auto';if(t==='auto')t=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'night':'day';
+  document.documentElement.setAttribute('data-theme',t);
+  const b=$('#themeBtn');if(b){b.innerHTML=icon(t==='night'?'sun':'moon');b.setAttribute('aria-label',t==='night'?'Switch to day mode':'Switch to night mode');}}
+function toggleTheme(){S.theme=isNight()?'day':'night';save();applyTheme();}
+if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(!S.theme||S.theme==='auto')applyTheme();});
+
+/* ---------- frame: header, dock, screen ---------- */
+let BACK=null;
+function setHeader({back=null,kicker='',title='',right='',home=false,progress=null}={}){
+  $('#hdr').innerHTML=`<div class="in">${home
+    ?`<div class="brand">${crest(30)}<span class="wordmark">${APP_NAME}</span></div>`
+    :`<button class="hbtn" id="backBtn" aria-label="Back">${icon('back')}</button><div class="htitle"><b>${kicker}</b><span>${title}</span></div>`}
+    ${right}<button class="hbtn" id="themeBtn"></button></div>${progress!=null?`<div class="hrule"><i style="width:${Math.round(progress*100)}%"></i></div>`:''}`;
+  BACK=back; if(back)$('#backBtn').onclick=back;
+  $('#themeBtn').onclick=toggleTheme; applyTheme();
+}
+function setDock(html){$('#dockIn').innerHTML=html;$('#dock').hidden=false;}
+function hideDock(){$('#dock').hidden=true;$('#dockIn').innerHTML='';}
+function screen(cls,hall){document.body.className=cls;document.documentElement.style.setProperty('--hall',hall||'var(--ink)');hideDock();window.scrollTo(0,0);}
+function promo(t){const p=document.createElement('div');p.className='promo';p.textContent=t;$('#hdr').appendChild(p);announce(t);
+  setTimeout(()=>{p.style.opacity=0;},3000);setTimeout(()=>p.remove(),3700);}
+function elapsed(ctx){const s=Math.floor((Date.now()-(ctx.t0||Date.now()))/1000);return pad(Math.floor(s/60))+':'+pad(s%60);}
+setInterval(()=>{const el=$('#clock span');if(el&&CUR&&CUR.ctx&&CUR.ctx.mode==='boss')el.textContent=elapsed(CUR.ctx);},1000);
+
 /* =====================================================================
    SCREENS
    ===================================================================== */
-function home(){
-  hideSheet(); location.hash='';
-  const xpIn=S.xp%100, tot=totalStars(), max=ALL.length*3;
-  app.innerHTML=`
-  <div class="hero"><div class="deco">🗄️</div>
-    <h1>Data Yard</h1><p>CMP2018 Database Design, as a game. No setup and nothing to install. Just play.</p>
-    <div class="lvl"><span class="pill">Lv ${level()}</span><div class="bar"><i style="width:${xpIn}%"></i></div><span class="pill">⭐ ${tot}/${max}</span></div>
-    <div style="margin-top:8px;font-size:13px;color:#cfe0ff;font-weight:700">${rank()} · ${S.xp} XP · 🔥 streak ${S.streak}</div>
-  </div>
-  <div class="grid">
-    ${WORLDS.map(w=>{const st=worldStars(w),mx=w.ch.length*3;return `
-    <button class="world" style="background:${w.color}" data-w="${w.id}">
-      <div class="ico">${w.ico}</div><h3>${w.name}</h3><p>${w.blurb}</p>
-      <div class="prog"><span>${w.unit}</span><span>★ ${st}/${mx}</span></div>
-      <div class="mini"><i style="width:${Math.round(st/mx*100)}%"></i></div>
-    </button>`;}).join('')}
-  </div>
-  <div class="card" style="margin-top:14px;display:flex;align-items:center;gap:12px">
-    <div style="font-size:36px">👑</div><div style="flex:1"><h3>Exam Boss</h3><div class="muted" style="font-size:13.5px">12 random questions from every world. Best: ${S.bossBest}/12</div></div>
-    <button class="btn y sm" id="bossBtn">Fight</button></div>
-  <div class="card" style="display:flex;align-items:center;gap:12px">
-    <div style="font-size:36px">🛠️</div><div style="flex:1"><h3>Sandbox</h3><div class="muted" style="font-size:13.5px">Free play: run any SQL, Mongo, JSON or XML</div></div>
-    <button class="btn sm" id="sandBtn">Open</button></div>
-  <div class="center muted" style="font-size:12px;margin-top:10px"><button id="resetBtn" style="text-decoration:underline;color:var(--mute)">Reset progress</button></div>`;
-  app.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>worldScreen(b.dataset.w));
-  $('#bossBtn').onclick=startBoss; $('#sandBtn').onclick=()=>sandbox('sql');
-  $('#resetBtn').onclick=()=>{const b=$('#resetBtn');if(b.dataset.c){S={stars:{},xp:0,streak:0,best:0,bossBest:0};save();home();}else{b.dataset.c=1;b.textContent='Tap again to confirm reset';}};
-  window.scrollTo(0,0);
+const NODES=[['er',95,40],['rel',265,170],['sql',95,300],['mongo',265,430],['json',95,560],['xml',265,690],['exam',180,830]];
+function continueTarget(){
+  if(!Object.keys(S.stars).length&&!S.last)return null;
+  const lw=S.last&&worldById(S.last.w);
+  if(lw){const c=lw.ch.slice(S.last.i).find(c=>!S.stars[c.id])||lw.ch.find(c=>!S.stars[c.id]);if(c)return {w:lw,c};}
+  const started=WORLDS.filter(w=>doneCount(w)>0&&doneCount(w)<w.ch.length);
+  for(const w of started.concat(WORLDS)){const c=w.ch.find(c=>!S.stars[c.id]);if(c)return {w,c};}
+  return {done:true};
 }
-function topBar(title,sub,backFn,right=''){
-  return `<div class="top"><button class="back" id="backBtn">‹</button><div class="ttl"><h2>${title}</h2><small>${sub}</small></div>${right}</div>`;
+function groundSVG(){
+  const spine='M180 24C180 80 172 130 180 180S188 290 180 350S172 470 180 530S188 650 180 710S180 800 180 842';
+  const H='url(#hx-ink)';
+  const branches=NODES.filter(n=>n[0]!=='exam').map(([id,x,y])=>{const w=worldById(id),done=doneCount(w)===w.ch.length;
+    return `<path d="M${x} ${y+100}Q${(x+180)/2} ${y+114} 180 ${y+106}" style="stroke:${done?`var(--h-${id})`:'var(--rule)'}" stroke-width="${done?2:1.6}" ${done?'':'stroke-dasharray="3 4"'}/>`;}).join('');
+  return `<svg class="ground" viewBox="0 0 360 1000" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+    <path d="${spine}" style="stroke:var(--rule)" stroke-width="15"/><path d="${spine}" style="stroke:var(--sheet-2)" stroke-width="13"/><path d="${spine}" stroke-width=".8" stroke-dasharray="4 7"/>
+    ${branches}
+    <path d="M166 16h6v14h-6zM188 16h6v14h-6z" style="fill:var(--paper)"/><text x="180" y="11" text-anchor="middle" style="font:600 7.5px var(--mono);letter-spacing:.14em;fill:currentColor;stroke:none">MAIN GATE</text>
+    <g opacity=".75"><ellipse cx="180" cy="415" rx="30" ry="46" style="fill:var(--paper)"/><ellipse cx="180" cy="415" rx="30" ry="46" fill="${H}" opacity=".35"/><ellipse cx="180" cy="415" rx="30" ry="46"/>
+      <circle cx="180" cy="415" r="7" style="fill:var(--paper)"/><path d="M180 415l5-4M180 408v-2"/></g>
+    <g opacity=".7">${[[22,190,9],[338,84,10],[346,330,8],[18,470,10],[344,600,9],[20,740,8],[64,905,10],[300,915,12],[334,860,7],[30,40,7]].map(([x,y,r])=>tree(x,y,r,H)).join('')}</g>
+    <g transform="translate(336 22)"><circle r="9"/><path d="M0-7l2.5 7-2.5-1.5-2.5 1.5z" style="fill:currentColor"/><text y="-11" text-anchor="middle" style="font:600 6px var(--mono);fill:currentColor;stroke:none">N</text></g>
+  </svg>`;
+}
+function nodeBtn([id,x,y]){
+  const pos=`left:${(x/3.6).toFixed(2)}%;top:${y/10}%`;
+  if(id==='exam')return `<button class="bld" data-n="exam" style="${pos};--hall:var(--h-ink)" aria-label="Examination Hall. Twelve-question paper. Best score ${S.bossBest} of 12.">${art('exam')}<span class="cap"><span class="nm">Examination Hall</span><span class="pg">Best <b>${S.bossBest}</b>/12</span></span></button>`;
+  const w=worldById(id),st=worldStars(w),mx=w.ch.length*3,dn=doneCount(w);
+  return `<button class="bld" data-n="${id}" style="${pos};--hall:${w.ink}" aria-label="${w.hall}: ${w.topic}. ${dn} of ${w.ch.length} exercises, ${st} of ${mx} marks.">${art(id)}${dn===w.ch.length?pennant():''}<span class="cap"><span class="nm">${w.hall}</span><span class="pg"><b>${dn}</b>/${w.ch.length} · ${star1()} ${st}</span></span></button>`;
+}
+function sideHTML(id){
+  if(id==='exam')return `<div class="card" style="--hall:var(--h-ink)">${banner('exam')}<div class="label">Twelve questions · all halls</div><h2>Examination Hall</h2>
+    <p class="muted">A mock paper drawn from every building. Graded A to F on a printed transcript.</p><div class="label">Best ${S.bossBest} / 12</div>
+    <div class="row" style="margin-top:16px"><button class="btn" data-go="exam">Enter the hall ${icon('arrow')}</button></div></div>`;
+  const w=worldById(id),dn=doneCount(w),st=worldStars(w);
+  return `<div class="card" style="--hall:${w.ink}">${banner(id)}<div class="label" style="color:var(--hall)">${esc(w.topic)} · ${esc(w.unit)}</div><h2 style="margin:4px 0 6px">${w.hall}</h2>
+    <p class="muted">${esc(w.blurb)}</p><div class="prule"><i style="width:${dn/w.ch.length*100}%"></i></div>
+    <div class="row" style="justify-content:space-between"><span class="label">${dn}/${w.ch.length} exercises</span><span class="label">${star1()} ${st}/${w.ch.length*3}</span></div>
+    <div class="row" style="margin-top:16px"><button class="btn" data-go="${id}">Enter building ${icon('arrow')}</button><button class="btn o" data-notes="${id}">${icon('book')} Notes</button></div></div>`;
+}
+function home(){
+  screen('home wide');
+  setHeader({home:true,right:`<span class="hstat" aria-label="Year ${level()}, ${S.xp} XP">Y${level()} · ${fmt(S.xp)} XP</span>`});
+  const cont=continueTarget(), tot=totalStars(), max=ALL.length*3;
+  let top;
+  if(!cont) top=`<section class="card welcome"><div class="label">${TAGLINE}</div><h1>Welcome to ${APP_NAME}.</h1><p class="muted">Start at Chen Hall, where every database begins with a diagram.</p><button class="btn" id="startBtn">Enter Chen Hall ${icon('arrow')}</button></section>`;
+  else if(cont.done) top=`<section class="card welcome"><div class="label">Every building complete</div><h1>Nuff respect.</h1><p class="muted">You have worked through the whole campus. Sit the examination to see where you stand.</p><button class="btn" id="startBtn">Go to the Examination Hall ${icon('arrow')}</button></section>`;
+  else top=`<button class="card cont" id="contBtn" style="--hall:${cont.w.ink}"><span class="t"><span class="label">Continue</span><h2>${cont.w.hall}</h2><span class="muted" style="display:block">Exercise ${pad(cont.c.idx+1)} · ${esc(typeLabel(cont.c))}</span></span>${icon('arrow')}</button>`;
+  const recap=`<div class="recap"><span class="label">Year ${level()}</span><span class="label">${star1()} ${tot}/${max} marks</span>${S.streak>0?`<span class="label tally" aria-label="Streak ${S.streak}">${icon('flame')}${tally(S.streak)} ${S.streak}</span>`:''}</div>`;
+  app.innerHTML=`<div class="homegrid"><div>${top}${recap}
+    <h2 class="sr">Campus map</h2><div class="campus" id="campus">${groundSVG()}${NODES.map(nodeBtn).join('')}</div>
+    <div class="foot"><button class="card" id="shopBtn" style="--hall:var(--h-ink)">${art('shop')}<span class="t"><h3>The Workshop</h3><p>Free SQL, Mongo, JSON and XML. Nothing is graded.</p></span>${icon('arrow')}</button></div>
+    <div class="resetrow"><button id="keysBtn" class="desk-only">Keyboard shortcuts</button> <button id="resetBtn">Reset progress</button></div></div>
+    <aside class="side" id="side" aria-label="Building details"></aside></div>`;
+  const side=$('#side');
+  const showSide=id=>{side.innerHTML=sideHTML(id);app.querySelectorAll('.bld').forEach(b=>b.classList.toggle('focus',b.dataset.n===id));};
+  showSide(cont&&cont.w?cont.w.id:'er');
+  side.onclick=e=>{const g=e.target.closest('[data-go]'),n=e.target.closest('[data-notes]');if(g)(g.dataset.go==='exam'?examCover():worldScreen(g.dataset.go));if(n)lessons(n.dataset.notes,0);};
+  app.querySelectorAll('.bld').forEach(b=>{const id=b.dataset.n;
+    b.onclick=()=>id==='exam'?examCover():worldScreen(id);
+    b.onmouseenter=()=>showSide(id); b.onfocus=()=>showSide(id);});
+  if($('#contBtn'))$('#contBtn').onclick=()=>play(cont.c,{mode:'world'});
+  if($('#startBtn'))$('#startBtn').onclick=()=>cont&&cont.done?examCover():worldScreen('er');
+  $('#shopBtn').onclick=()=>sandbox('sql'); $('#keysBtn').onclick=showKeys;
+  $('#resetBtn').onclick=()=>{const b=$('#resetBtn');if(b.dataset.c){S={stars:{},xp:0,streak:0,best:0,bossBest:0,theme:S.theme};save();home();}else{b.dataset.c=1;b.textContent='Tap again to confirm reset';}};
 }
 function worldScreen(id){
-  hideSheet(); const w=worldById(id);
-  app.innerHTML=topBar(w.ico+' '+w.name,w.unit+' · ★ '+worldStars(w)+'/'+w.ch.length*3)+`
-   <button class="btn y wide" id="lessonBtn" style="margin-bottom:14px">📖 Quick lessons (${w.lessons.length} cards)</button>
-   <div class="path">${w.ch.map((c,i)=>{const st=S.stars[c.id]||0;return `
-     <button class="node ${st?'done':''}" data-i="${i}"><div class="num">${st?'✓':i+1}</div>
-       <div class="nt"><b>${typeLabel(c)}</b><small>${esc(stripTags(c.q)).slice(0,70)}${stripTags(c.q).length>70?'…':''}</small></div>${starStr(st)}</button>`;}).join('')}</div>`;
-  $('#backBtn').onclick=home; $('#lessonBtn').onclick=()=>lessons(id,0);
+  const w=worldById(id); screen('',w.ink);
+  setHeader({back:home,kicker:'Campus',title:w.hall});
+  const st=worldStars(w),mx=w.ch.length*3,dn=doneCount(w),nx=w.ch.find(c=>!S.stars[c.id]);
+  app.innerHTML=`<section class="bhead">${banner(id)}<div class="label">${esc(w.topic)} · ${esc(w.unit)}</div><h1>${w.hall}</h1>
+    <p class="muted" style="margin:0">${esc(w.blurb)}</p>
+    <div class="prule" role="progressbar" aria-label="Exercises completed" aria-valuemin="0" aria-valuemax="${w.ch.length}" aria-valuenow="${dn}"><i style="width:${dn/w.ch.length*100}%"></i></div>
+    <div class="row" style="justify-content:space-between"><span class="label">${dn}/${w.ch.length} exercises</span><span class="label">${star1()} ${st}/${mx} marks</span></div>
+    <div class="row" style="margin-top:18px"><button class="btn o" id="lessonBtn">${icon('book')} Read the lecture notes</button><button class="btn" id="beginBtn">${!dn?'Begin exercises':nx?'Continue at '+pad(nx.idx+1):'Revisit exercises'} ${icon('arrow')}</button></div></section>
+    <div class="exlist">${w.ch.map((c,i)=>`<button class="ex" data-i="${i}" aria-label="Exercise ${i+1}: ${esc(typeLabel(c))}. ${S.stars[c.id]||0} of 3 marks."><span class="n">${pad(i+1)}</span><span class="t"><b>${typeLabel(c)}</b><span>${esc(stripTags(c.q))}</span></span>${starStr(S.stars[c.id]||0)}</button>`).join('')}</div>`;
+  $('#lessonBtn').onclick=()=>lessons(id,0);
+  $('#beginBtn').onclick=()=>play(nx||w.ch[0],{mode:'world'});
   app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>play(w.ch[+b.dataset.i],{mode:'world'}));
-  window.scrollTo(0,0);
 }
 function stripTags(s){const d=document.createElement('div');d.innerHTML=s;return d.textContent;}
 function typeLabel(c){return {mcq:'Quick pick',sort:'Sort it out',build:'Build it',sql:c.dml?'SQL: change data':'SQL query',mongo:c.write?'Mongo write':'Mongo query',json:'JSON code',xml:'XML code'}[c.type];}
 function lessons(id,k){
-  const w=worldById(id), L=w.lessons[k];
-  app.innerHTML=topBar('📖 '+w.name,'Lesson '+(k+1)+' of '+w.lessons.length)+`
-   <div class="bar" style="margin-bottom:14px"><i style="width:${(k+1)/w.lessons.length*100}%"></i></div>
-   <div class="card lesson"><h3>${L[0]}</h3>${L[1]}</div>
-   <div class="dock"><div class="in">${k>0?'<button class="btn o" id="prev">‹ Back</button>':''}
-     <button class="btn ${k===w.lessons.length-1?'g':''}" id="next">${k===w.lessons.length-1?'Start challenges ▶':'Next ›'}</button></div></div>`;
-  $('#backBtn').onclick=()=>worldScreen(id);
+  const w=worldById(id), L=w.lessons[k], last=k===w.lessons.length-1; screen('',w.ink);
+  setHeader({back:()=>worldScreen(id),kicker:w.hall,title:'Lecture notes',progress:(k+1)/w.lessons.length});
+  app.innerHTML=`<article class="card lesson"><div class="label">Lecture notes · ${k+1} / ${w.lessons.length}</div><h2>${L[0]}</h2>${L[1]}</article>`;
+  setDock(`${k>0?`<button class="btn o" id="prev">${icon('back')} Previous</button>`:''}<button class="btn" id="next">${last?'Begin exercises':'Next'} ${icon('arrow')}</button>`);
   if(k>0)$('#prev').onclick=()=>lessons(id,k-1);
-  $('#next').onclick=()=>k===w.lessons.length-1?play(w.ch.find(c=>!S.stars[c.id])||w.ch[0],{mode:'world'}):lessons(id,k+1);
-  window.scrollTo(0,0);
+  $('#next').onclick=()=>last?play(w.ch.find(c=>!S.stars[c.id])||w.ch[0],{mode:'world'}):lessons(id,k+1);
 }
 
-/* ---------- CHALLENGE PLAYER ---------- */
+/* ---------- EXERCISE PLAYER (the worksheet) ---------- */
 let CUR=null;
 function play(c,ctx){
-  hideSheet();
   CUR={c,ctx,attempts:0,hint:false,state:{}};
-  const w=worldById(c.world);
-  const head = ctx.mode==='boss'
-    ? topBar('👑 Exam Boss','Question '+(ctx.i+1)+' of '+ctx.list.length+' · '+w.name, null, `<span class="pill">✅ ${ctx.score}</span>`)
-    : topBar(w.ico+' '+w.name,'Challenge '+(c.idx+1)+' of '+w.ch.length, null, `<span class="pill">${starStr(S.stars[c.id]||0)}</span>`);
-  app.innerHTML=head+`<div class="card" id="qcard"><span class="tag">${typeLabel(c)}</span>
-     <div class="q">${c.html||c.type==='sql'||c.type==='mongo'?c.q:c.q}</div>${c.sub?`<div class="qsub">${c.sub}</div>`:''}
-     ${c.fig?`<div class="fig">${c.fig}</div>`:''}<div id="area"></div><div id="hintArea"></div></div>
-     <div class="dock"><div class="in"><button class="btn o" id="hintBtn" style="flex:0 0 auto">💡</button><button class="btn g" id="checkBtn">Check</button></div></div>`;
-  $('#backBtn').onclick=()=>ctx.mode==='boss'?home():worldScreen(c.world);
+  const w=worldById(c.world), boss=ctx.mode==='boss';
+  screen('wide',boss?'var(--h-ink)':w.ink);
+  if(!boss){S.last={w:c.world,i:c.idx};save();}
+  setHeader(boss
+    ?{back:home,kicker:'Examination Hall',title:`Question ${pad(ctx.i+1)} / ${ctx.list.length}`,right:`<span class="hstat" id="clock" aria-label="Time elapsed">${icon('clock')} <span>${elapsed(ctx)}</span></span>`,progress:ctx.i/ctx.list.length}
+    :{back:()=>worldScreen(c.world),kicker:w.hall,title:`Exercise ${pad(c.idx+1)} / ${pad(w.ch.length)}`,right:starStr(S.stars[c.id]||0),progress:c.idx/w.ch.length});
+  const notes=boss?'':`<aside class="notes-side" aria-label="Lecture notes for ${w.hall}"><div class="label" style="margin-bottom:8px">Lecture notes · ${w.hall}</div>${w.lessons.map(L=>`<section class="lesson"><h2>${L[0]}</h2>${L[1]}</section>`).join('')}</aside>`;
+  app.innerHTML=`<div class="${boss?'solo':'playgrid'}">${notes}<div class="main">
+    <article class="ws" id="qcard" aria-labelledby="qtext"><span class="mnum" aria-hidden="true">${pad(boss?ctx.i+1:c.idx+1)}</span><span class="mmark" id="mmark" aria-hidden="true"></span><div id="anno" aria-hidden="true"></div>
+      <span class="tag">${typeLabel(c)}${boss?' · '+w.hall:''}</span>
+      <div class="q" id="qtext">${c.q}</div>${c.sub?`<div class="qsub">${c.sub}</div>`:''}
+      ${c.fig?`<div class="fig">${c.fig}</div>`:''}<div id="area"></div><div id="hintArea"></div></article>
+    <div id="note"></div></div></div>`;
+  setDock(`<button class="hbtn" id="hintBtn" aria-label="Show a hint">${icon('pencil')}</button><button class="btn" id="checkBtn">Check</button>`);
   $('#hintBtn').onclick=showHint;
   RENDER[c.type](c);
-  window.scrollTo(0,0);
 }
-function showHint(){const c=CUR.c;const h=c.hint||(c.type==='mcq'?'Re-read the question carefully, then rule out the options that are clearly wrong.':'Check the lesson cards for this world.');
-  if(!CUR.hint){CUR.hint=true;}
-  $('#hintArea').innerHTML=`<div class="hintBox">💡 ${c.html||c.type==='sql'||c.type==='mongo'?esc(h):esc(h)}</div>`;}
+function showHint(){const c=CUR.c;const h=c.hint||(c.type==='mcq'?'Re-read the question carefully, then rule out the options that are clearly wrong.':'Check the lecture notes for this building.');
+  CUR.hint=true;
+  $('#hintArea').innerHTML=`<div class="hint"><span class="label">Pencilled hint</span>${esc(h)}</div>`;}
 function setCheck(fn,label='Check'){const b=$('#checkBtn');b.textContent=label;b.onclick=fn;}
 
 const RENDER={
  mcq(c){
   const order=c.opts.map((_,i)=>i); // keep authored order
-  $('#area').innerHTML=`<div class="opts">${order.map(i=>`<button class="opt" data-o="${i}">${c.html?c.opts[i]:esc(c.opts[i])}</button>`).join('')}</div>`;
-  let sel=null; app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(CUR.state.locked)return;app.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel','wrong'));b.classList.add('sel');sel=+b.dataset.o;});
+  $('#area').innerHTML=`<div class="opts">${order.map((i,k)=>`<button class="opt" data-o="${i}" aria-pressed="false"><span class="k" aria-hidden="true">${'ABCDEF'[k]}</span><span class="ot">${c.html?c.opts[i]:esc(c.opts[i])}</span></button>`).join('')}</div>`;
+  let sel=null; app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{if(CUR.state.locked)return;app.querySelectorAll('.opt').forEach(x=>{x.classList.remove('sel','wrong');x.setAttribute('aria-pressed','false');});b.classList.add('sel');b.setAttribute('aria-pressed','true');sel=+b.dataset.o;});
   setCheck(()=>{if(sel===null){toast('Pick an answer first');return;}
     const ok=sel===c.a; const btn=app.querySelector(`.opt[data-o="${sel}"]`);
     if(ok){btn.classList.add('right');CUR.state.locked=true;} else btn.classList.add('wrong');
-    judge(ok, ok?'':'Not that one. Try again, or use a 💡 hint.');});
+    judge(ok, ok?'':'Not that one. Try again, or ask for a pencilled hint.');});
  },
  sort(c){
   const picks=c.items.map(()=>null);
-  $('#area').innerHTML=c.items.map((it,i)=>`<div class="sortItem" id="si${i}"><div class="lab">${esc(it[0])}</div><div class="chips">${c.cats.map((k,j)=>`<button class="chip" data-i="${i}" data-j="${j}">${esc(k)}</button>`).join('')}</div></div>`).join('');
+  $('#area').innerHTML=c.items.map((it,i)=>`<div class="sortItem" id="si${i}"><div class="lab">${esc(it[0])}</div><div class="chips">${c.cats.map((k,j)=>`<button class="chip" data-i="${i}" data-j="${j}" aria-pressed="false">${esc(k)}</button>`).join('')}</div></div>`).join('');
   app.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;picks[i]=+b.dataset.j;
-    app.querySelectorAll(`.chip[data-i="${i}"]`).forEach(x=>x.classList.toggle('on',x===b));$('#si'+i).classList.remove('bad');});
+    app.querySelectorAll(`.chip[data-i="${i}"]`).forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',x===b);});$('#si'+i).classList.remove('bad');});
   setCheck(()=>{if(picks.some(p=>p===null)){toast('Tag every item first');return;}
     let wrong=0;c.items.forEach((it,i)=>{const ok=picks[i]===it[1];$('#si'+i).classList.toggle('bad',!ok);$('#si'+i).classList.toggle('good',ok);if(!ok)wrong++;});
-    judge(wrong===0, wrong+' item'+(wrong>1?'s are':' is')+' in the wrong place (marked red).');});
+    judge(wrong===0, wrong+' item'+(wrong>1?'s are':' is')+' in the wrong place (marked in red).');});
  },
  build(c){
   const bank=c.tokens.map((t,i)=>({t,i})).sort(()=>Math.random()-.5); const picked=[];
-  const draw=()=>{ $('#area').innerHTML=`<div class="buildZone" id="zone">${picked.length?picked.map((p,k)=>`<button class="tok" data-k="${k}">${esc(p.t)}</button>`).join(''):'<span class="muted" style="font-size:14px">Tap the pieces below in order…</span>'}</div>
+  const draw=()=>{ $('#area').innerHTML=`<div class="buildZone" id="zone">${picked.length?picked.map((p,k)=>`<button class="tok" data-k="${k}" aria-label="Remove ${esc(p.t)}">${esc(p.t)}</button>`).join(''):'<span class="muted" style="font-size:14px">Tap the pieces below in order…</span>'}</div>
      <div class="bank">${bank.map(b=>`<button class="tok ${picked.includes(b)?'used':''}" data-b="${b.i}">${esc(b.t)}</button>`).join('')}</div>
-     <div style="margin-top:10px"><button class="btn o sm" id="clr">Clear</button></div>`;
+     <div style="margin-top:12px"><button class="btn o sm" id="clr">${icon('reset')} Clear</button></div>`;
     app.querySelectorAll('[data-b]').forEach(e=>e.onclick=()=>{picked.push(bank.find(b=>b.i===+e.dataset.b));draw();});
     app.querySelectorAll('#zone [data-k]').forEach(e=>e.onclick=()=>{picked.splice(+e.dataset.k,1);draw();});
     $('#clr').onclick=()=>{picked.length=0;draw();}; };
@@ -1038,83 +1422,108 @@ const RENDER={
   setCheck(()=>{const ok=picked.map(p=>p.t).join(' ')===c.answer.join(' ');if(!ok)$('#zone').classList.add('bad');judge(ok,'Not quite. Check the order of the pieces.');});
  },
  sql(c){
-  $('#area').innerHTML=`<div class="muted" style="font-size:13px;margin-top:10px">Engine: SQLite (live)</div>
-    <textarea class="ed" id="ed" ${edAttrs} placeholder="Type your SQL here…">${esc(CUR.state.code||'')}</textarea>${keyBar('sql','ed')}
-    <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">▶ Run</button><button class="btn o sm" id="tables">🗂 Tables</button><button class="btn o sm" id="target">🎯 Target</button></div>
-    <div class="out" id="out"></div>`;
+  $('#area').innerHTML=`<div class="engine">Engine · SQLite, running in your browser</div>
+    <textarea class="ed" id="ed" ${edAttrs} aria-label="SQL editor" placeholder="Type your SQL here…">${esc(CUR.state.code||'')}</textarea>${keyBar('sql','ed')}
+    <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">${icon('play')} Run</button><button class="btn o sm" id="tables">${icon('table')} Tables</button><button class="btn o sm" id="target">${icon('target')} Target</button></div>
+    <div class="out" id="out" aria-live="polite"></div>`;
   const out=$('#out');
-  const withSQL=fn=>{if(SQL)return fn();out.innerHTML='<div class="muted">Starting SQL engine…</div>';sqlReady.then(()=>{if(sqlErr){out.innerHTML=`<div class="err">The SQL engine couldn't start in this browser: ${esc(sqlErr.message)}</div>`;return;}fn();});};
+  const withSQL=fn=>{if(SQL)return fn();out.innerHTML='<div class="muted">Starting the SQL engine…</div>';sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`The SQL engine couldn't start in this browser: ${esc(sqlErr.message)}`);return;}fn();});};
   const expected=()=>{const db=freshDB();const r=runSQL(db,c.expect);const fin=c.dml?runSQL(db,c.check):r;db.close();return fin;};
   const runUser=()=>{const db=freshDB();try{const src=$('#ed').value;if(!src.trim())throw new Error('Type a query first.');const r=runSQL(db,src);const fin=c.dml?runSQL(db,c.check):r;return {r,fin};}finally{db.close();}};
-  $('#run').onclick=()=>withSQL(()=>{try{const {r,fin}=runUser();out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(r)}${c.dml?`<div class="lbl">Table after your change</div>${tableHTML(fin)}`:''}`;}catch(e){out.innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;}});
+  $('#run').onclick=()=>withSQL(()=>{try{const {r,fin}=runUser();out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(r)}${c.dml?`<div class="lbl">Table after your change</div>${tableHTML(fin)}`:''}`;}catch(e){out.innerHTML=ERR(esc(e.message));}});
   $('#tables').onclick=()=>withSQL(()=>{const db=freshDB();out.innerHTML=['student','course','enrolment'].map(t=>`<div class="lbl">${t}</div>${tableHTML(runSQL(db,'SELECT * FROM '+t))}`).join('');db.close();});
-  $('#target').onclick=()=>withSQL(()=>{out.innerHTML=`<div class="lbl">🎯 ${c.dml?'The table should look like this afterwards':'Your query should return this'}</div>${tableHTML(expected())}`;});
+  $('#target').onclick=()=>withSQL(()=>{out.innerHTML=`<div class="lbl">Target · ${c.dml?'the table should look like this afterwards':'your query should return this'}</div>${tableHTML(expected())}`;});
   setCheck(()=>withSQL(()=>{CUR.state.code=$('#ed').value;let u;
-    try{u=runUser();}catch(e){out.innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;judge(false,'Your SQL has an error. Read the red message, fix it and try again.');return;}
+    try{u=runUser();}catch(e){out.innerHTML=ERR(esc(e.message));judge(false,'Your SQL has an error. Read the red message, fix it and try again.');return;}
     const ex=expected(); let ok=u.fin.columns.length===ex.columns.length && rowsKey(u.fin,c.order)===rowsKey(ex,c.order);
     let msg='';
     if(!ok){ if(u.fin.columns.length!==ex.columns.length) msg=`You returned ${u.fin.columns.length} column(s); the target has ${ex.columns.length}.`;
       else if(u.fin.values.length!==ex.values.length) msg=`You returned ${u.fin.values.length} row(s); the target has ${ex.values.length}.`;
       else if(c.order&&rowsKey(u.fin,false)===rowsKey(ex,false)) msg='Right rows, but the order is wrong.';
       else msg='The values don’t match the target yet.'; }
-    out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(c.dml?u.fin:u.r)}${ok?'':`<div class="lbl">🎯 Target</div>${tableHTML(ex)}`}`;
-    judge(ok,msg,ok?`<div class="lbl" style="color:#b9f5d4">One model answer</div><pre>${esc(c.expect)}</pre>`:'');
+    out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(c.dml?u.fin:u.r)}${ok?'':`<div class="lbl">Target</div>${tableHTML(ex)}`}`;
+    judge(ok,msg,ok?`<div class="out"><div class="lbl">One model answer</div><pre>${esc(c.expect)}</pre></div>`:'');
   }));
  },
  mongo(c){
-  $('#area').innerHTML=`<div class="muted" style="font-size:13px;margin-top:10px">Collection: <code>db.students</code> (8 documents)</div>
-    <textarea class="ed" id="ed" ${edAttrs} placeholder='db.students.find({ … })'>${esc(CUR.state.code||'db.students.')}</textarea>${keyBar('mongo','ed')}
-    <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">▶ Run</button><button class="btn o sm" id="docs">🗂 Documents</button><button class="btn o sm" id="target">🎯 Target</button></div><div class="out" id="out"></div>`;
+  $('#area').innerHTML=`<div class="engine">Collection · <code>db.students</code> · 8 documents</div>
+    <textarea class="ed" id="ed" ${edAttrs} aria-label="Mongo shell editor" placeholder='db.students.find({ … })'>${esc(CUR.state.code||'db.students.')}</textarea>${keyBar('mongo','ed')}
+    <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">${icon('play')} Run</button><button class="btn o sm" id="docs">${icon('docs')} Documents</button><button class="btn o sm" id="target">${icon('target')} Target</button></div><div class="out" id="out" aria-live="polite"></div>`;
   const out=$('#out');
   const exec=src=>{const colls={students:clone(MONGO_STUDENTS)};const r=runMongo(src,colls);return {r,colls};};
   const expected=()=>exec(c.expect);
   const viewOf=x=>c.write?{kind:'docs',value:x.colls.students}:x.r;
-  $('#run').onclick=()=>{try{const x=exec($('#ed').value);out.innerHTML=`<div class="lbl">Result</div>${mongoHTML(x.r)}${c.write?`<div class="lbl">Collection now</div>${mongoHTML({kind:'docs',value:x.colls.students})}`:''}`;}catch(e){out.innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;}};
+  $('#run').onclick=()=>{try{const x=exec($('#ed').value);out.innerHTML=`<div class="lbl">Result</div>${mongoHTML(x.r)}${c.write?`<div class="lbl">Collection now</div>${mongoHTML({kind:'docs',value:x.colls.students})}`:''}`;}catch(e){out.innerHTML=ERR(esc(e.message));}};
   $('#docs').onclick=()=>{out.innerHTML=`<pre>${esc(JSON.stringify(MONGO_STUDENTS,null,2))}</pre>`;};
-  $('#target').onclick=()=>{out.innerHTML=`<div class="lbl">🎯 ${c.write?'The collection should look like this afterwards':'Target result'}</div>${mongoHTML(viewOf(expected()))}`;};
+  $('#target').onclick=()=>{out.innerHTML=`<div class="lbl">Target · ${c.write?'the collection should look like this afterwards':'expected result'}</div>${mongoHTML(viewOf(expected()))}`;};
   setCheck(()=>{CUR.state.code=$('#ed').value;let u;
-    try{u=exec($('#ed').value);}catch(e){out.innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;judge(false,'That command didn’t run. Check the brackets, colons and quotes.');return;}
+    try{u=exec($('#ed').value);}catch(e){out.innerHTML=ERR(esc(e.message));judge(false,'That command didn’t run. Check the brackets, colons and quotes.');return;}
     const ex=expected(); const uv=viewOf(u), ev=viewOf(ex);
     const key=v=>v.kind==='docs'?(c.order?v.value.map(canon):v.value.map(canon).sort()).join('|'):canon(v.value);
     const ok=uv.kind===ev.kind&&key(uv)===key(ev);
     let msg=''; if(!ok){ if(uv.kind==='docs'&&ev.kind==='docs'&&uv.value.length!==ev.value.length)msg=`You got ${uv.value.length} document(s); the target has ${ev.value.length}.`;
       else if(c.order&&uv.kind==='docs'&&uv.value.map(canon).sort().join()===ev.value.map(canon).sort().join())msg='Right documents, wrong order.';
       else msg='The result doesn’t match the target yet. Compare the fields shown.';}
-    out.innerHTML=`<div class="lbl">Your result</div>${mongoHTML(uv)}${ok?'':`<div class="lbl">🎯 Target</div>${mongoHTML(ev)}`}`;
-    judge(ok,msg,ok?`<div class="lbl" style="color:#b9f5d4">One model answer</div><pre>${esc(c.expect)}</pre>`:'');});
+    out.innerHTML=`<div class="lbl">Your result</div>${mongoHTML(uv)}${ok?'':`<div class="lbl">Target</div>${mongoHTML(ev)}`}`;
+    judge(ok,msg,ok?`<div class="out"><div class="lbl">One model answer</div><pre>${esc(c.expect)}</pre></div>`:'');});
  },
  json(c){
-  $('#area').innerHTML=`<textarea class="ed" id="ed" ${edAttrs} placeholder="Type JSON here…">${esc(CUR.state.code!=null?CUR.state.code:c.start)}</textarea>${keyBar('json','ed')}
-   <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">🔍 Validate</button></div><div class="out" id="out"></div>`;
+  $('#area').innerHTML=`<textarea class="ed" id="ed" ${edAttrs} aria-label="JSON editor" placeholder="Type JSON here…">${esc(CUR.state.code!=null?CUR.state.code:c.start)}</textarea>${keyBar('json','ed')}
+   <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">${icon('search')} Validate</button></div><div class="out" id="out" aria-live="polite"></div>`;
   const out=$('#out');
   const parse=()=>JSON.parse($('#ed').value);
-  $('#run').onclick=()=>{try{const v=parse();out.innerHTML=`<div class="ok">✓ Valid JSON</div><pre>${esc(JSON.stringify(v,null,2))}</pre>`;}catch(e){out.innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
+  $('#run').onclick=()=>{try{const v=parse();out.innerHTML=`${OK('Valid JSON')}<pre>${esc(JSON.stringify(v,null,2))}</pre>`;}catch(e){out.innerHTML=ERR(esc(e.message));}};
   setCheck(()=>{CUR.state.code=$('#ed').value;let v;
-    try{v=parse();}catch(e){out.innerHTML=`<div class="err">✗ Not valid JSON yet: ${esc(e.message)}</div>`;judge(false,'It doesn’t parse yet. Look for missing quotes or commas, or extra commas.');return;}
+    try{v=parse();}catch(e){out.innerHTML=ERR('Not valid JSON yet: '+esc(e.message));judge(false,'It doesn’t parse yet. Look for missing quotes or commas, or extra commas.');return;}
     const ok=canon(v)===canon(c.target);
-    out.innerHTML=ok?`<div class="ok">✓ Valid and correct</div>`:`<div class="ok">✓ Valid JSON, but the data is different from what was asked</div><pre>${esc(JSON.stringify(v,null,2))}</pre>`;
+    out.innerHTML=ok?OK('Valid and correct'):`${OK('Valid JSON, but the data is different from what was asked')}<pre>${esc(JSON.stringify(v,null,2))}</pre>`;
     judge(ok,'It parses, but the keys, values or types don’t match. Check spelling, and numbers vs "strings".',ok?`<pre>${esc(JSON.stringify(c.target,null,2))}</pre>`:'');});
  },
  xml(c){
-  $('#area').innerHTML=`<textarea class="ed" id="ed" ${edAttrs} placeholder="Type XML here…">${esc(CUR.state.code!=null?CUR.state.code:c.start)}</textarea>${keyBar('xml','ed')}
-   <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">🔍 Is it well-formed?</button></div><div class="out" id="out"></div>`;
+  $('#area').innerHTML=`<textarea class="ed" id="ed" ${edAttrs} aria-label="XML editor" placeholder="Type XML here…">${esc(CUR.state.code!=null?CUR.state.code:c.start)}</textarea>${keyBar('xml','ed')}
+   <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">${icon('search')} Is it well-formed?</button></div><div class="out" id="out" aria-live="polite"></div>`;
   const out=$('#out');
   const parse=()=>{const src=$('#ed').value.trim();if(!src)throw new Error('Type some XML first.');const d=new DOMParser().parseFromString(src,'application/xml');const pe=d.getElementsByTagName('parsererror')[0];
     if(pe)throw new Error((pe.textContent||'Parse error').replace(/Below is a rendering.*$/s,'').trim().slice(0,240));return d;};
-  $('#run').onclick=()=>{try{parse();out.innerHTML='<div class="ok">✓ Well-formed XML</div>';}catch(e){out.innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
+  $('#run').onclick=()=>{try{parse();out.innerHTML=OK('Well-formed XML');}catch(e){out.innerHTML=ERR(esc(e.message));}};
   setCheck(()=>{CUR.state.code=$('#ed').value;let d;
-    try{d=parse();}catch(e){out.innerHTML=`<div class="err">✗ Not well-formed: ${esc(e.message)}</div>`;judge(false,'The XML isn’t well-formed yet. Check that every tag closes with matching case.');return;}
-    const m=XML_CHECKS[c.check](d); out.innerHTML=m?`<div class="ok">✓ Well-formed, but…</div><div class="err">${esc(m)}</div>`:'<div class="ok">✓ Well-formed and correct</div>';
+    try{d=parse();}catch(e){out.innerHTML=ERR('Not well-formed: '+esc(e.message));judge(false,'The XML isn’t well-formed yet. Check that every tag closes with matching case.');return;}
+    const m=XML_CHECKS[c.check](d); out.innerHTML=m?`${OK('Well-formed, but…')}${ERR(esc(m))}`:OK('Well-formed and correct');
     judge(!m,m);});
  }
 };
 
+/* ---------- MARKING: the lecturer's margin ---------- */
+const PRAISE=['Correct.','Correct.','Tidy.','Tidy.','Big up!','Clean work.','Clean work.','Wicked.',"That's the one.",'Mi rate dat.','Exactly right.','Exactly right.','Nuff respect.'];
+const FULL=['Full marks.','Full marks.','Big up yourself, full marks.','Textbook.'];
+const NUDGE=['Not quite.','Not quite.','Close, but no.',"Almost. One thing's off.",'Easy nuh, look again.','Try that once more.'];
+function clearMarks(){['#mmark','#anno'].forEach(s=>{const e=$(s);if(e)e.innerHTML='';});document.querySelectorAll('.squig').forEach(e=>e.remove());}
+function markMargin(ok,text,full){
+  $('#mmark').innerHTML=ok
+   ?`<svg class="draw" viewBox="0 0 28 28" fill="none" style="stroke:var(--tick)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15c3 2 5 5 6 8 4-9 9-15 15-20"/></svg>`
+   :`<svg class="draw" viewBox="0 0 28 28" fill="none" style="stroke:var(--redpen)" stroke-width="2" stroke-linecap="round"><path d="M14 3C6 3 2 9 3 15s7 11 13 10 10-6 9-12S19 2 11 5"/><path d="M10 10l8 8M18 10l-8 8"/></svg>`;
+  $('#anno').innerHTML=`<div class="anno ${ok?'':'bad'}">${esc(text)}${full?`<span class="uline draw"><svg viewBox="0 0 100 7" preserveAspectRatio="none" fill="none" style="stroke:var(--tick)" stroke-width="1.6" stroke-linecap="round"><path vector-effect="non-scaling-stroke" d="M2 2.5c30-1.5 60-1.5 96-.5"/><path vector-effect="non-scaling-stroke" d="M6 5.5c28-1.2 56-1 88 0"/></svg></span>`:''}</div>`;
+}
+function squiggle(){const t=$('#ed')||$('#zone');if(t)t.insertAdjacentHTML('afterend','<div class="squig" aria-hidden="true"></div>');}
+function showNote(ok,body,stats){
+  $('#note').innerHTML=`<section class="note ${ok?'':'bad'}" aria-label="Marker's note"><div class="label">${icon(ok?'check':'x')} Marker's note</div><div class="nb">${body}</div>${stats?`<div class="stats">${stats}</div>`:''}</section>`;
+  const n=$('#note .note'); if(n&&n.scrollIntoView)n.scrollIntoView({block:'nearest',behavior:reduced()?'auto':'smooth'});
+}
 function judge(ok,msg,extra=''){
-  const c=CUR.c, ctx=CUR.ctx;
+  const c=CUR.c, ctx=CUR.ctx; clearMarks();
   if(ctx.mode==='boss'){ // one shot
     if(ok)ctx.score++;
     S.xp+=ok?15:2; save();
-    sheet(ok, ok?'Correct!':'Missed it', `${ok?'':esc(msg)+'<br><br>'}${c.why}`+extra, ctx.i+1<ctx.list.length?'Next question ›':'See results 🏁', ()=>{ctx.i++; ctx.i<ctx.list.length?play(ctx.list[ctx.i],ctx):bossEnd(ctx);}, null);
+    (ctx.res||(ctx.res=[])).push({w:c.world,ok});
+    CUR.state.locked=true;
+    if(!ok&&c.type==='mcq'){const r=app.querySelector(`.opt[data-o="${c.a}"]`);if(r)r.classList.add('right');}
+    markMargin(ok, ok?pick(PRAISE):'Not this time.');
+    if(!ok)squiggle();
+    showNote(ok,`${ok?'':esc(msg)+'<br><br>'}${c.why}${extra}`,`+${ok?15:2} XP · ${ctx.score} correct so far`);
+    announce((ok?'Correct. ':'Incorrect. ')+stripTags((ok?'':msg+' ')+c.why));
+    const last=ctx.i+1>=ctx.list.length;
+    $('#hintBtn').hidden=true;
+    setCheck(()=>{ctx.i++; last?bossEnd(ctx):play(ctx.list[ctx.i],ctx);}, last?'See your transcript →':'Next question →');
     return;
   }
   CUR.attempts++;
@@ -1122,89 +1531,109 @@ function judge(ok,msg,extra=''){
     const st=Math.max(1,3-(CUR.attempts-1)-(CUR.hint?1:0)); const prev=S.stars[c.id]||0;
     const gain=prev?3:(st*10); S.xp+=gain; if(st>prev)S.stars[c.id]=st;
     S.streak=CUR.attempts===1?S.streak+1:0; save();
-    const lvBefore=Math.floor((S.xp-gain)/100)+1; if(level()>lvBefore){setTimeout(()=>toast('🎉 Level up! Lv '+level()+' · '+rank()),400);}
-    if(st===3)confetti();
+    const lvBefore=Math.floor((S.xp-gain)/100)+1; if(level()>lvBefore)setTimeout(()=>promo('Promoted to Year '+level()+'.'),400);
     const w=worldById(c.world); const nxt=w.ch[c.idx+1];
-    sheet(true, ['Wicked!','Bad! (the good kind)','Nailed it!','Big up yourself!','Correct!'][Math.floor(Math.random()*5)]+' '+starStr(st), c.why+extra+`<div style="margin-top:8px;font-weight:800;color:var(--gold)">+${gain} XP ${S.streak>1?'· 🔥 '+S.streak+' streak':''}</div>`,
-      nxt?'Next challenge ›':'World complete 🏁', ()=>nxt?play(nxt,ctx):worldDone(w), null);
+    markMargin(true, st===3?pick(FULL):pick(PRAISE), st===3);
+    showNote(true, c.why+extra, `<span>+${gain} XP</span><span>·</span>${starStr(st)}${S.streak>1?`<span>·</span><span class="tally">${icon('flame')} streak ${S.streak}</span>`:''}`);
+    const hs=$('#hdr .stars'); if(hs)hs.outerHTML=starStr(S.stars[c.id]||0);
+    announce(`Correct. ${st} of 3 marks, plus ${gain} XP. ${stripTags(c.why)}`);
+    $('#hintBtn').hidden=true;
+    setCheck(()=>nxt?play(nxt,ctx):worldDone(w), nxt?'Next exercise →':'Collect your certificate →');
   } else {
     S.streak=0; save();
-    const card=$('#qcard'); card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    const card=$('#qcard'); card.classList.remove('shake'); void card.offsetWidth; if(!reduced())card.classList.add('shake');
     const showWhy=CUR.attempts>=3;
-    sheet(false,'Not yet…', esc(msg)+(showWhy?`<br><br><b>Explanation:</b> ${c.why}`:''), 'Try again', hideSheet, showWhy&&c.type!=='mcq'&&c.type!=='sort'&&c.type!=='build'?null:null);
+    markMargin(false, pick(NUDGE)); squiggle();
+    showNote(false, esc(msg)+(showWhy?`<br><br><b>Explanation:</b> ${c.why}`:''), CUR.attempts>1?`Attempt ${CUR.attempts}`:'');
+    announce('Not quite. '+msg);
   }
 }
-function sheet(good,title,body,btn,fn){
-  const sh=$('#sheet'); $('#sheetIn').innerHTML=`<h3>${title}</h3><p>${body}</p><button class="btn ${good?'g':''} wide" id="sheetBtn">${btn}</button>`;
-  sh.className='sheet show '+(good?'good':'bad'); $('#sheetBtn').onclick=fn;
-}
 function worldDone(w){
-  hideSheet(); const st=worldStars(w),mx=w.ch.length*3; confetti();
-  app.innerHTML=topBar(w.ico+' '+w.name,'Complete!')+`<div class="card center"><div class="big">🏆</div><h2>${w.name} cleared!</h2>
-    <p class="muted">★ ${st} / ${mx} stars</p><p>${st===mx?'Perfect run. You’re ready for this on the exam.':'Replay any challenge with fewer than 3 stars to master it.'}</p>
-    <div class="row" style="justify-content:center;margin-top:10px"><button class="btn o" id="again">Replay world</button><button class="btn g" id="homeB">Back to map</button></div></div>`;
-  $('#backBtn').onclick=home; $('#homeB').onclick=home; $('#again').onclick=()=>worldScreen(w.id);
+  const st=worldStars(w),mx=w.ch.length*3; screen('',w.ink);
+  setHeader({back:home,kicker:w.hall,title:'Certificate'});
+  const date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  app.innerHTML=`<section class="card cert">${crest(76,true)}<div class="label">Certificate of completion</div>${art(w.id)}<h1>${w.hall}</h1><div class="muted">${esc(w.topic)}</div>
+    <p class="aw">Awarded to a student of ${APP_NAME}</p>
+    <div class="meta"><span class="label">${starStr(Math.round(st/mx*3))} ${st} / ${mx} marks</span><span class="label">${date}</span></div>
+    <p class="muted" style="margin-top:10px">${st===mx?'A perfect record. You’re ready for this on the exam.':'Revisit any exercise with fewer than three marks to master it.'}</p>
+    <div class="row" style="justify-content:center;margin-top:14px"><button class="btn o" id="again">Revisit building</button><button class="btn" id="homeB">Back to campus</button></div></section>`;
+  $('#homeB').onclick=home; $('#again').onclick=()=>worldScreen(w.id);
+  announce(`Certificate of completion for ${w.hall}. ${st} of ${mx} marks.`);
+}
+function examCover(){
+  screen('','var(--h-ink)'); setHeader({back:home,kicker:'Campus',title:'Examination Hall'});
+  app.innerHTML=`<section class="card cover">${art('exam')}<div class="label">Examination paper</div><h1>Database Design</h1>
+    <dl><dt>Questions</dt><dd>12</dd><dt>Coverage</dt><dd>All six halls, two each</dd><dt>Marking</dt><dd>Once per question</dd><dt>Best score</dt><dd>${S.bossBest} / 12</dd></dl>
+    <p class="muted">Hints are allowed. The paper is graded A to F on a printed transcript.</p>
+    <button class="btn" id="beginExam">Begin examination ${icon('arrow')}</button></section>`;
+  $('#beginExam').onclick=startBoss;
 }
 function startBoss(){
   const pool=ALL.slice().sort(()=>Math.random()-.5);
   const list=[]; WORLDS.forEach(w=>{const p=pool.filter(c=>c.world===w.id);list.push(p[0],p[1]);});
   list.sort(()=>Math.random()-.5);
-  play(list[0],{mode:'boss',list,i:0,score:0});
+  play(list[0],{mode:'boss',list,i:0,score:0,res:[],t0:Date.now()});
 }
+const GRADE_NOTE={A:'Exam-ready. Big up!',B:'Strong paper.',C:'Solid pass. Revisit the weaker halls.',D:'Not there yet. The notes will get you there.',F:'Rough paper. Start with the lecture notes and come back.'};
 function bossEnd(ctx){
-  hideSheet(); const sc=ctx.score; if(sc>S.bossBest)S.bossBest=sc; S.xp+=sc*5; save(); if(sc>=9)confetti();
-  const grade=sc>=11?'A':sc>=9?'B':sc>=7?'C':sc>=5?'D':'F';
-  app.innerHTML=topBar('👑 Exam Boss','Results')+`<div class="card center"><div class="big">${sc>=9?'👑':sc>=6?'💪':'📚'}</div>
-   <h2>${sc} / ${ctx.list.length}  ·  Grade ${grade}</h2><p class="muted">Best: ${S.bossBest}/12 · +${sc*5} bonus XP</p>
-   <p>${sc>=9?'Exam-ready. Big up!':'Go back through the worlds you missed, then fight again.'}</p>
-   <div class="row" style="justify-content:center"><button class="btn y" id="again">Fight again</button><button class="btn o" id="homeB">Map</button></div></div>`;
-  $('#backBtn').onclick=home; $('#homeB').onclick=home; $('#again').onclick=startBoss;
+  const sc=ctx.score; if(sc>S.bossBest)S.bossBest=sc; S.xp+=sc*5; save();
+  const grade=sc>=11?'A':sc>=9?'B':sc>=7?'C':sc>=5?'D':'F', time=elapsed(ctx);
+  screen('','var(--h-ink)'); setHeader({back:home,kicker:'Examination Hall',title:'Transcript'});
+  const rows=WORLDS.map(w=>{const r=(ctx.res||[]).filter(x=>x.w===w.id);return `<tr><td>${w.hall}</td><td>${r.filter(x=>x.ok).length} / ${r.length}</td></tr>`;}).join('');
+  app.innerHTML=`<section class="card cover"><div class="label">Transcript · ${new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div class="grade" role="img" aria-label="Grade ${grade}"><b>${grade}</b><small>GRADE</small></div>
+    <h2>${sc} / ${ctx.list.length} correct</h2><p class="muted">${GRADE_NOTE[grade]}</p>
+    <div class="tbl transcript"><table><tr><th>Building</th><th>Correct</th></tr>${rows}<tr><td><b>Total</b></td><td><b>${sc} / ${ctx.list.length}</b></td></tr></table></div>
+    <p class="label" style="margin-top:14px">Best ${S.bossBest} / 12 · +${sc*5} bonus XP · ${time}</p>
+    <div class="row" style="justify-content:center;margin-top:8px"><button class="btn" id="again">Sit again</button><button class="btn o" id="homeB">Back to campus</button></div></section>`;
+  $('#homeB').onclick=home; $('#again').onclick=examCover;
+  announce(`Grade ${grade}. ${sc} of ${ctx.list.length} correct.`);
 }
 
-/* ---------- SANDBOX ---------- */
+/* ---------- THE WORKSHOP (sandbox) ---------- */
 let SANDDB=null, SANDCOLL=null;
 function sandbox(tab){
-  hideSheet();
-  app.innerHTML=topBar('🛠️ Sandbox','Free play. Nothing is graded.')+`<div class="tabs">${['sql','mongo','json','xml'].map(t=>`<button data-t="${t}" class="${t===tab?'on':''}">${t.toUpperCase()}</button>`).join('')}</div>
+  screen('','var(--h-ink)'); setHeader({back:home,kicker:'Campus',title:'The Workshop'});
+  app.innerHTML=`<p class="muted" style="margin:0 0 12px">Free practice. Nothing is graded.</p><div class="tabs" role="tablist">${['sql','mongo','json','xml'].map(t=>`<button role="tab" aria-selected="${t===tab}" data-t="${t}" class="${t===tab?'on':''}">${t.toUpperCase()}</button>`).join('')}</div>
    <div class="card" id="sb"></div>`;
-  $('#backBtn').onclick=home; app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>sandbox(b.dataset.t));
+  app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>sandbox(b.dataset.t));
   const sb=$('#sb');
   if(tab==='sql'){
-    sb.innerHTML=`<div class="muted" style="font-size:13.5px">Tables: student, course, enrolment. Your changes stay until you reset. You can run several statements at once.</div>
-    <textarea class="ed" id="sed" ${edAttrs} style="min-height:160px">SELECT major, COUNT(*) AS students, ROUND(AVG(gpa),2) AS avg_gpa
+    sb.innerHTML=`<div class="muted" style="font-size:14px">Tables: student, course, enrolment. Your changes stay until you reset. You can run several statements at once.</div>
+    <textarea class="ed" id="sed" ${edAttrs} aria-label="SQL editor" style="min-height:160px">SELECT major, COUNT(*) AS students, ROUND(AVG(gpa),2) AS avg_gpa
 FROM student
 GROUP BY major;</textarea>${keyBar('sql','sed')}
-    <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">▶ Run</button><button class="btn o sm" id="sreset">↺ Reset DB</button><button class="btn o sm" id="sschema">🗂 Schema</button></div><div class="out" id="sout"></div>`;
+    <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('play')} Run</button><button class="btn o sm" id="sreset">${icon('reset')} Reset DB</button><button class="btn o sm" id="sschema">${icon('table')} Schema</button></div><div class="out" id="sout" aria-live="polite"></div>`;
     const out=$('#sout');
-    const ensure=fn=>sqlReady.then(()=>{if(sqlErr){out.innerHTML=`<div class="err">SQL engine failed to start: ${esc(sqlErr.message)}</div>`;return;}if(!SANDDB)SANDDB=freshDB();fn();});
-    $('#srun').onclick=()=>ensure(()=>{try{const res=SANDDB.exec($('#sed').value);out.innerHTML=res.length?res.map(r=>tableHTML(r)).join(''):`<div class="ok">✓ Done. ${SANDDB.getRowsModified()} row(s) changed.</div>`;}catch(e){out.innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;}});
-    $('#sreset').onclick=()=>ensure(()=>{SANDDB.close();SANDDB=freshDB();out.innerHTML='<div class="ok">Database reset to the original data.</div>';});
+    const ensure=fn=>sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`SQL engine failed to start: ${esc(sqlErr.message)}`);return;}if(!SANDDB)SANDDB=freshDB();fn();});
+    $('#srun').onclick=()=>ensure(()=>{try{const res=SANDDB.exec($('#sed').value);out.innerHTML=res.length?res.map(r=>tableHTML(r)).join(''):OK(`Done. ${SANDDB.getRowsModified()} row(s) changed.`);}catch(e){out.innerHTML=ERR(esc(e.message));}});
+    $('#sreset').onclick=()=>ensure(()=>{SANDDB.close();SANDDB=freshDB();out.innerHTML=OK('Database reset to the original data.');});
     $('#sschema').onclick=()=>ensure(()=>{out.innerHTML=tableHTML(SANDDB.exec("SELECT name, sql FROM sqlite_master WHERE type='table'")[0]);});
   } else if(tab==='mongo'){
     if(!SANDCOLL)SANDCOLL={students:clone(MONGO_STUDENTS)};
-    sb.innerHTML=`<div class="muted" style="font-size:13.5px">Collection: db.students. Supports find, findOne, countDocuments, insertOne/Many, updateOne/Many, deleteOne/Many, sort, limit and skip.</div>
-    <textarea class="ed" id="sed" ${edAttrs}>db.students.find({ gpa: { $gte: 3.5 } }, { name: 1, gpa: 1, _id: 0 }).sort({ gpa: -1 })</textarea>${keyBar('mongo','sed')}
-    <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">▶ Run</button><button class="btn o sm" id="sreset">↺ Reset</button></div><div class="out" id="sout"></div>`;
-    $('#srun').onclick=()=>{try{$('#sout').innerHTML=mongoHTML(runMongo($('#sed').value,SANDCOLL));}catch(e){$('#sout').innerHTML=`<div class="err">⚠ ${esc(e.message)}</div>`;}};
-    $('#sreset').onclick=()=>{SANDCOLL={students:clone(MONGO_STUDENTS)};$('#sout').innerHTML='<div class="ok">Collection reset.</div>';};
+    sb.innerHTML=`<div class="muted" style="font-size:14px">Collection: db.students. Supports find, findOne, countDocuments, insertOne/Many, updateOne/Many, deleteOne/Many, sort, limit and skip.</div>
+    <textarea class="ed" id="sed" ${edAttrs} aria-label="Mongo shell editor">db.students.find({ gpa: { $gte: 3.5 } }, { name: 1, gpa: 1, _id: 0 }).sort({ gpa: -1 })</textarea>${keyBar('mongo','sed')}
+    <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('play')} Run</button><button class="btn o sm" id="sreset">${icon('reset')} Reset</button></div><div class="out" id="sout" aria-live="polite"></div>`;
+    $('#srun').onclick=()=>{try{$('#sout').innerHTML=mongoHTML(runMongo($('#sed').value,SANDCOLL));}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
+    $('#sreset').onclick=()=>{SANDCOLL={students:clone(MONGO_STUDENTS)};$('#sout').innerHTML=OK('Collection reset.');};
   } else if(tab==='json'){
-    sb.innerHTML=`<textarea class="ed" id="sed" ${edAttrs} style="min-height:180px">{
+    sb.innerHTML=`<textarea class="ed" id="sed" ${edAttrs} aria-label="JSON editor" style="min-height:180px">{
   "code": "CMP2018",
   "title": "Database Design",
   "credits": 3,
   "units": ["ER", "Relational", "SQL", "NoSQL"]
-}</textarea>${keyBar('json','sed')}<div class="row" style="margin-top:8px"><button class="btn sm" id="srun">🔍 Validate & format</button><button class="btn o sm" id="sxml">→ Convert to XML</button></div><div class="out" id="sout"></div>`;
-    $('#srun').onclick=()=>{try{$('#sout').innerHTML=`<div class="ok">✓ Valid JSON</div><pre>${esc(JSON.stringify(JSON.parse($('#sed').value),null,2))}</pre>`;}catch(e){$('#sout').innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
-    $('#sxml').onclick=()=>{try{const v=JSON.parse($('#sed').value);$('#sout').innerHTML=`<div class="lbl">As XML</div><pre>${esc(toXML(v,'root',''))}</pre>`;}catch(e){$('#sout').innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
+}</textarea>${keyBar('json','sed')}<div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('search')} Validate &amp; format</button><button class="btn o sm" id="sxml">${icon('convert')} Convert to XML</button></div><div class="out" id="sout" aria-live="polite"></div>`;
+    $('#srun').onclick=()=>{try{$('#sout').innerHTML=`${OK('Valid JSON')}<pre>${esc(JSON.stringify(JSON.parse($('#sed').value),null,2))}</pre>`;}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
+    $('#sxml').onclick=()=>{try{const v=JSON.parse($('#sed').value);$('#sout').innerHTML=`<div class="lbl">As XML</div><pre>${esc(toXML(v,'root',''))}</pre>`;}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
   } else {
-    sb.innerHTML=`<textarea class="ed" id="sed" ${edAttrs} style="min-height:180px">&lt;?xml version="1.0"?&gt;
+    sb.innerHTML=`<textarea class="ed" id="sed" ${edAttrs} aria-label="XML editor" style="min-height:180px">&lt;?xml version="1.0"?&gt;
 &lt;course code="CMP2018"&gt;
   &lt;title&gt;Database Design&lt;/title&gt;
   &lt;credits&gt;3&lt;/credits&gt;
-&lt;/course&gt;</textarea>${keyBar('xml','sed')}<div class="row" style="margin-top:8px"><button class="btn sm" id="srun">🔍 Check well-formed</button><button class="btn o sm" id="sjson">→ Convert to JSON</button></div><div class="out" id="sout"></div>`;
+&lt;/course&gt;</textarea>${keyBar('xml','sed')}<div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('search')} Check well-formed</button><button class="btn o sm" id="sjson">${icon('convert')} Convert to JSON</button></div><div class="out" id="sout" aria-live="polite"></div>`;
     const parse=()=>{const d=new DOMParser().parseFromString($('#sed').value.trim(),'application/xml');const pe=d.getElementsByTagName('parsererror')[0];if(pe)throw new Error(pe.textContent.replace(/Below is a rendering.*$/s,'').trim().slice(0,240));return d;};
-    $('#srun').onclick=()=>{try{parse();$('#sout').innerHTML='<div class="ok">✓ Well-formed XML</div>';}catch(e){$('#sout').innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
-    $('#sjson').onclick=()=>{try{const d=parse();const r=d.documentElement;$('#sout').innerHTML=`<div class="lbl">As JSON</div><pre>${esc(JSON.stringify({[r.nodeName]:fromXML(r)},null,2))}</pre>`;}catch(e){$('#sout').innerHTML=`<div class="err">✗ ${esc(e.message)}</div>`;}};
+    $('#srun').onclick=()=>{try{parse();$('#sout').innerHTML=OK('Well-formed XML');}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
+    $('#sjson').onclick=()=>{try{const d=parse();const r=d.documentElement;$('#sout').innerHTML=`<div class="lbl">As JSON</div><pre>${esc(JSON.stringify({[r.nodeName]:fromXML(r)},null,2))}</pre>`;}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
   }
 }
 function toXML(v,tag,ind){const x=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -1215,6 +1644,25 @@ function fromXML(el){const kids=[...el.children];const o={};[...el.attributes].f
   if(!kids.length){const t=el.textContent.trim();return Object.keys(o).length?Object.assign(o,{'#text':t}):(t!==''&&!isNaN(t)?+t:t);}
   kids.forEach(k=>{const v=fromXML(k);if(o[k.nodeName]!==undefined){if(!Array.isArray(o[k.nodeName]))o[k.nodeName]=[o[k.nodeName]];o[k.nodeName].push(v);}else o[k.nodeName]=v;});return o;}
 
+/* ---------- keyboard shortcuts (desktop) ---------- */
+function showKeys(){if($('.kbd'))return;
+  document.body.insertAdjacentHTML('beforeend',`<div class="kbd" role="dialog" aria-modal="true" aria-labelledby="kbdT"><div class="card"><div class="row" style="justify-content:space-between"><h2 id="kbdT" style="font-size:18px">Keyboard shortcuts</h2><button class="hbtn" id="kbdX" aria-label="Close">${icon('x')}</button></div>
+    <dl><dt>Ctrl/⌘ + Enter</dt><dd>Run the query</dd><dt>1 – 4</dt><dd>Pick an option</dd><dt>Enter</dt><dd>Check your answer</dd><dt>H</dt><dd>Show a hint</dd><dt>Esc</dt><dd>Go back</dd><dt>?</dt><dd>This list</dd></dl></div></div>`);
+  const k=$('.kbd');$('#kbdX').onclick=()=>k.remove();k.onclick=e=>{if(e.target===k)k.remove();};$('#kbdX').focus();}
+document.addEventListener('keydown',e=>{
+  const t=e.target, typing=t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT');
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){const r=$('#run')||$('#srun');if(r){e.preventDefault();r.click();}return;}
+  if(e.key==='Escape'){const k=$('.kbd');if(k){k.remove();return;}if(typing){t.blur();return;}if(BACK){e.preventDefault();BACK();}return;}
+  if(e.key==='Enter'&&t&&t.classList&&t.classList.contains('opt')&&t.classList.contains('sel')){const b=$('#checkBtn');if(b){e.preventDefault();b.click();}return;}
+  if(typing||e.ctrlKey||e.metaKey||e.altKey||$('.kbd'))return;
+  if(e.key==='?'){showKeys();return;}
+  if(!$('#qcard'))return;
+  if(/^[1-6]$/.test(e.key)){const o=app.querySelectorAll('.opt')[+e.key-1];if(o){o.click();o.focus();}return;}
+  if(e.key==='h'||e.key==='H'){const h=$('#hintBtn');if(h&&!h.hidden)h.click();return;}
+  if(e.key==='Enter'&&!(t&&(t.tagName==='BUTTON'||t.tagName==='A'))){const b=$('#checkBtn');if(b){e.preventDefault();b.click();}}
+});
+
+applyTheme();
 home();
 </script>
 </body>
