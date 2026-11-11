@@ -161,12 +161,15 @@ pre{background:var(--sheet-2);border:1px solid var(--rule);border-radius:4px;pad
 pre code{border:0;padding:0;background:none}
 
 /* ER figures: restyle the authored SVG so it reads as printed ink */
-.fig{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px;margin-top:14px}
+.fig{background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:8px;margin-top:14px;overflow-x:auto}
 .fig svg{display:block;width:100%;height:auto}
 .fig svg rect{fill:var(--sheet-2);stroke:var(--ink)}
 .fig svg line,.fig svg path{stroke:var(--ink)}
 .fig svg circle{fill:var(--sheet);stroke:var(--ink)}
 .fig svg text{fill:var(--ink);font-family:var(--sans)}
+.fig svg polygon{fill:var(--sheet-2);stroke:var(--ink)}
+.fig svg .fill{fill:var(--ink);stroke:none}
+.rn{font-family:var(--mono);font-size:.95em}.rn .fk{color:var(--ink-2)}
 
 /* ===================== WORKSHEET ===================== */
 .ws{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);padding:20px 16px 22px 44px;margin-bottom:16px}
@@ -541,44 +544,147 @@ else if (typeof exports === 'object'){
 <script>
 "use strict";
 /* =====================================================================
-   DATA: sample databases
+   DATA: sample databases (shaped like the CMP2018 past-paper schemas)
    ===================================================================== */
 const SCHEMA_SQL = `
+CREATE TABLE department(
+  deptID TEXT PRIMARY KEY, deptName TEXT, location TEXT, establishedDate TEXT);
+INSERT INTO department VALUES
+ ('D01','Human Resources','Kingston','2010-03-01'),
+ ('D02','IT','Kingston','2012-06-15'),
+ ('D03','Finance','Montego Bay','2015-01-10'),
+ ('D04','Marketing','Mandeville','2019-09-01');
+CREATE TABLE employee(
+  empID INTEGER PRIMARY KEY, firstName TEXT, lastName TEXT, position TEXT,
+  hireDate TEXT, salary REAL, deptID TEXT REFERENCES department(deptID),
+  supervisorID INTEGER REFERENCES employee(empID));
+INSERT INTO employee VALUES
+ (5001,'Marcia','Gordon','Director','2011-02-14',450000,'D01',NULL),
+ (5002,'Kevin','Shaw','IT Manager','2013-05-20',380000,'D02',5001),
+ (5003,'Tricia','Henry','Accountant','2016-08-01',260000,'D03',5001),
+ (5004,'Omar','Francis','Developer','2018-01-15',240000,'D02',5002),
+ (5005,'Simone','Thompson','Analyst','2021-03-10',210000,'D02',5002),
+ (5006,'Jason','Palmer','Recruiter','2019-11-04',185000,'D01',5001),
+ (5007,'Nadine','Spence','Marketing Officer','2022-07-18',175000,'D04',5001),
+ (5008,'Rohan','Mitchell','Developer','2023-02-01',230000,'D02',5002),
+ (5009,'Keisha','Bennett','Accounts Clerk','2020-05-25',150000,'D03',5003),
+ (5010,'Craig','Powell','Project Manager','2017-09-12',320000,'D02',5002);
+CREATE TABLE client(
+  clientID INTEGER PRIMARY KEY, firstName TEXT, lastName TEXT, email TEXT, phone TEXT, address TEXT);
+INSERT INTO client VALUES
+ (3001,'Andrea','Simms','andrea.simms@example.com','876-555-0101','12 Penwood Road, Kingston 20'),
+ (3002,'Paul','Morrison','paul.morrison@example.com','876-555-0144','4 Hope Road, Kingston 6'),
+ (3003,'Sasha','Gayle','sasha.gayle@example.com','876-555-0172','7 Pen Lane, Spanish Town'),
+ (3004,'Ricardo','Lewis','ricardo.lewis@example.com','876-555-0190','23 Barbican Road, Kingston 8'),
+ (3005,'Monique','Hall','monique.hall@example.com','876-555-0123','15 Sunset Avenue, Montego Bay'),
+ (3006,'Garfield','Scott','garfield.scott@example.com','876-555-0168','2 Pennsylvania Drive, Portmore');
+CREATE TABLE project(
+  projectID INTEGER PRIMARY KEY, projectName TEXT, startDate TEXT,
+  status TEXT CHECK (status IN ('pending','in progress','complete')), budget REAL,
+  clientID INTEGER REFERENCES client(clientID), empID INTEGER REFERENCES employee(empID));
+INSERT INTO project VALUES
+ (7001,'Payroll Upgrade','2024-01-15','complete',1200000,3001,5004),
+ (7002,'Mobile Banking App','2024-06-01','in progress',3500000,3002,5010),
+ (7003,'Website Redesign Phase 1','2023-11-20','complete',800000,3004,5008),
+ (7004,'Inventory System','2025-02-10','in progress',2100000,3002,5004),
+ (7005,'Data Warehouse','2025-05-05','pending',3500000,3005,5010),
+ (7006,'Staff Portal','2025-08-18','pending',650000,3001,5005),
+ (7007,'Loyalty Programme','2023-04-03','complete',950000,3004,5007),
+ (7008,'Network Audit','2025-05-30','pending',400000,3006,5002);
+
+CREATE TABLE trainer(
+  trainerID TEXT PRIMARY KEY, firstName TEXT, lastName TEXT, email TEXT, hourlyRate REAL);
+INSERT INTO trainer VALUES
+ ('T01','Jodi-Ann','Brooks','jbrooks@example.com',4500),
+ ('T02','Marlon','Edwards','medwards@example.com',5200),
+ ('T03','Ayesha','Campbell','acampbell@example.com',3800),
+ ('T04','Delroy','Young','dyoung@example.com',6000),
+ ('T05','Natalie','Hinds','nhinds@example.com',4200);
+CREATE TABLE venue(
+  venueID TEXT PRIMARY KEY, venueName TEXT, parish TEXT, capacity INTEGER, rentalCost REAL);
+INSERT INTO venue VALUES
+ ('V01','Hope Gardens Hall','Kingston',120,60000),
+ ('V02','Bay View Centre','St. James',80,45000),
+ ('V03','Mandeville Hub','Manchester',50,30000),
+ ('V04','Portmore Pavilion','St. Catherine',200,75000);
+CREATE TABLE workshop(
+  workshopID TEXT PRIMARY KEY, title TEXT, wkshopDate TEXT, fee REAL, maxParticipants INTEGER,
+  status TEXT, venueID TEXT REFERENCES venue(venueID), trainerID TEXT REFERENCES trainer(trainerID));
+INSERT INTO workshop VALUES
+ ('W101','Intro to SQL','2026-02-14',20000,30,'scheduled','V01','T01'),
+ ('W102','Data Modelling','2026-03-07',30000,25,'cancelled','V01','T02'),
+ ('W103','Excel for Business','2026-03-21',15000,40,'cancelled','V02','T03'),
+ ('W104','Cloud Basics','2026-04-11',35000,20,'scheduled','V03','T02'),
+ ('W105','Cyber Security Essentials','2026-05-09',28000,35,'cancelled','V01','T01'),
+ ('W106','Python for Data','2026-06-13',26000,30,'completed','V02','T03');
+CREATE TABLE participant(
+  participantID TEXT PRIMARY KEY, firstName TEXT, lastName TEXT, email TEXT, phone TEXT, country TEXT);
+INSERT INTO participant VALUES
+ ('P01','Tamika','Ellis','tamika.ellis@example.com','876-555-0211','Jamaica'),
+ ('P02','Andre','Baptiste','andre.baptiste@example.com','868-555-0102','Trinidad and Tobago'),
+ ('P03','Dilnoza','Karimova','dilnoza.k@example.com','998-555-0188','Uzbekistan'),
+ ('P04','Liam','Carter','liam.carter@example.com','416-555-0133','Canada'),
+ ('P05','Petra','Novak','petra.novak@example.com','420-555-0175','Czechia'),
+ ('P06','Shawna','Blair','shawna.blair@example.com','876-555-0240','Jamaica'),
+ ('P07','Ravi','Persaud','ravi.persaud@example.com','592-555-0119','Guyana'),
+ ('P08','Kimone','Daley','kimone.daley@example.com','246-555-0150','Barbados');
+CREATE TABLE registration(
+  registrationID TEXT PRIMARY KEY, regDate TEXT, amtPaid REAL, regStatus TEXT,
+  workshopID TEXT REFERENCES workshop(workshopID), participantID TEXT REFERENCES participant(participantID));
+INSERT INTO registration VALUES
+ ('R001','2026-01-20',20000,'paid','W101','P01'),
+ ('R002','2026-01-22',20000,'paid','W101','P02'),
+ ('R003','2026-02-01',30000,'refunded','W102','P01'),
+ ('R004','2026-02-03',15000,'paid','W102','P06'),
+ ('R005','2026-02-15',15000,'refunded','W103','P03'),
+ ('R006','2026-03-01',35000,'paid','W104','P04'),
+ ('R007','2026-03-02',35000,'paid','W104','P05'),
+ ('R008','2026-03-05',28000,'refunded','W105','P07'),
+ ('R009','2026-03-06',20000,'paid','W101','P08'),
+ ('R010','2026-04-01',26000,'paid','W106','P02'),
+ ('R011','2026-04-02',26000,'paid','W106','P06'),
+ ('R012','2026-04-03',13000,'partial','W104','P08');
+
 CREATE TABLE student(
-  id INTEGER PRIMARY KEY, fname TEXT, lname TEXT, major TEXT,
-  gpa REAL, year INTEGER, parish TEXT);
+  studentID INTEGER PRIMARY KEY, studentName TEXT, major TEXT, country TEXT);
 INSERT INTO student VALUES
- (1,'Alex','Watson','CS',3.4,2,'Kingston'),
- (2,'Aaliyah','Brown','IT',3.8,2,'St. Andrew'),
- (3,'Marcus','Campbell','CS',2.9,3,'St. Catherine'),
- (4,'Shanice','Walker','SE',3.6,1,'Kingston'),
- (5,'Dwayne','Reid','IT',2.5,2,'Clarendon'),
- (6,'Kimberly','Henry','CS',3.9,3,'St. James'),
- (7,'Andre','Lewis','SE',3.1,2,'St. Catherine'),
- (8,'Tanya','Morgan','IT',3.2,1,'Manchester');
+ (1001,'Aaliyah Brown','Computing','Jamaica'),
+ (1002,'Marcus Campbell','Networking','Jamaica'),
+ (1003,'Priya Singh','Computing','Canada'),
+ (1004,'Ethan Moore','Information Systems','Canada'),
+ (1005,'Shanice Walker','Computing','Trinidad and Tobago'),
+ (1006,'Tyrone Hylton','Networking','Jamaica'),
+ (1007,'Chloe Martin','Information Systems','Barbados'),
+ (1008,'Jordan Ricketts','Computing','Jamaica');
 CREATE TABLE course(
-  code TEXT PRIMARY KEY, title TEXT, credits INTEGER, lecturer TEXT);
+  courseID TEXT PRIMARY KEY, courseTitle TEXT, credits INTEGER);
 INSERT INTO course VALUES
- ('CMP2018','Database Design',3,'Ms. Grant'),
- ('CMP1024','Programming 1',4,'Mr. Bailey'),
- ('CMP2019','Software Engineering',3,'Mr. Clarke'),
- ('INT1001','Information Technology',3,'Ms. Douglas'),
- ('MAT1008','Discrete Maths',3,'Dr. Patel');
-CREATE TABLE enrolment(
-  student_id INTEGER REFERENCES student(id),
-  course_code TEXT REFERENCES course(code),
-  grade TEXT, score INTEGER,
-  PRIMARY KEY(student_id, course_code));
-INSERT INTO enrolment VALUES
- (1,'CMP2018','A',85),(1,'CMP1024','B+',76),
- (2,'CMP2018','A',90),(2,'INT1001','A-',82),
- (3,'CMP1024','C',58),(3,'CMP2018','F',40),
- (4,'INT1001','B',70),
- (5,'CMP1024','F',35),(5,'INT1001','C+',62),
- (6,'CMP2018','A',92),(6,'CMP2019','A-',84),
- (7,'CMP2019','B',72),(7,'CMP1024','B',71),
- (8,'INT1001','B+',77);
+ ('CMP2018','Database Design',3),('CMP1024','Programming 1',4),('CMP2019','Software Engineering',3),
+ ('INT1001','Information Technology',3),('MAT1008','Discrete Mathematics',3),('CIT3002','Network Security',3);
+CREATE TABLE lecturer(
+  lecturerID INTEGER PRIMARY KEY, lecturerName TEXT, department TEXT);
+INSERT INTO lecturer VALUES
+ (101,'Dr. Patel','Computing'),(102,'Ms. Grant','Computing'),(103,'Mr. Bailey','Information Systems'),
+ (104,'Ms. Douglas','Mathematics'),(105,'Mr. Clarke','Networking');
+CREATE TABLE enrollment(
+  studentID INTEGER REFERENCES student(studentID), courseID TEXT REFERENCES course(courseID),
+  semester TEXT, grade TEXT, PRIMARY KEY(studentID, courseID, semester));
+INSERT INTO enrollment VALUES
+ (1001,'CMP2018','2026-S1','A'),(1001,'CMP1024','2026-S1','B+'),(1002,'CMP2018','2026-S1','C'),
+ (1003,'CMP2018','2026-S1','A-'),(1003,'MAT1008','2026-S1','B'),(1004,'INT1001','2026-S1','B'),
+ (1005,'CMP2019','2026-S1','A'),(1006,'CMP1024','2026-S1','F'),(1007,'CMP2018','2025-S2','B+');
+CREATE TABLE teaches(
+  lecturerID INTEGER REFERENCES lecturer(lecturerID), courseID TEXT REFERENCES course(courseID),
+  semester TEXT, PRIMARY KEY(lecturerID, courseID, semester));
+INSERT INTO teaches VALUES
+ (102,'CMP2018','2026-S1'),(101,'CMP1024','2026-S1'),(103,'CMP2019','2026-S1'),
+ (101,'INT1001','2026-S1'),(104,'MAT1008','2026-S1'),(102,'CMP2018','2025-S2');
 `;
+const CASES={
+  firm:['department','employee','client','project'],
+  wk:['trainer','venue','workshop','participant','registration'],
+  uni:['student','course','lecturer','enrollment','teaches']
+};
 
 const MONGO_STUDENTS = [
  {_id:1,name:"Alex Watson",major:"CS",gpa:3.4,year:2,address:{parish:"Kingston",town:"Papine"},skills:["SQL","Python"],courses:[{code:"CMP2018",grade:"A"},{code:"CMP1024",grade:"B+"}]},
@@ -591,379 +697,796 @@ const MONGO_STUDENTS = [
  {_id:8,name:"Tanya Morgan",major:"IT",gpa:3.2,year:1,address:{parish:"Manchester",town:"Mandeville"},skills:["Python"],courses:[{code:"INT1001",grade:"B+"}]}
 ];
 
-/* ER crow's-foot figure helper. ends: one | zeroOne | many | zeroMany */
-function crowSym(type){
-  // drawn for the RIGHT end (entity edge at x=290), line arrives from left
-  const y=45; let s='';
-  if(type==='many'||type==='zeroMany'){ s+=`<path d="M272 ${y} L290 ${y-11} M272 ${y} L290 ${y} M272 ${y} L290 ${y+11}" stroke="#1c2b45" stroke-width="2.2" fill="none"/>`; }
-  if(type==='one'){ s+=`<path d="M281 ${y-10} V${y+10} M273 ${y-10} V${y+10}" stroke="#1c2b45" stroke-width="2.2"/>`; }
-  if(type==='zeroOne'){ s+=`<path d="M281 ${y-10} V${y+10}" stroke="#1c2b45" stroke-width="2.2"/><circle cx="268" cy="${y}" r="6" fill="#fff" stroke="#1c2b45" stroke-width="2.2"/>`; }
-  if(type==='many'){ s+=`<path d="M266 ${y-10} V${y+10}" stroke="#1c2b45" stroke-width="2.2"/>`; }
-  if(type==='zeroMany'){ s+=`<circle cx="262" cy="${y}" r="6" fill="#fff" stroke="#1c2b45" stroke-width="2.2"/>`; }
-  return s;
+/* ---------- figures in the lecture notation ----------
+   ER: rectangle = entity, diamond = relationship, arrow = ONE, no arrow = MANY,
+   double line = total participation, double rectangle/diamond = weak entity / identifying relationship. */
+const svgEsc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function erd({l,r,rel,lOne=false,rOne=false,lTotal=false,rTotal=false,weak=false}){
+  const side=(x1,x2,total)=>total?`<line x1="${x1}" y1="42" x2="${x2}" y2="42" stroke-width="1.6"/><line x1="${x1}" y1="48" x2="${x2}" y2="48" stroke-width="1.6"/>`:`<line x1="${x1}" y1="45" x2="${x2}" y2="45" stroke-width="1.6"/>`;
+  return `<svg viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ER diagram: ${svgEsc(l)} ${svgEsc(rel)} ${svgEsc(r)}">
+  <rect x="8" y="25" width="102" height="40" rx="2" stroke-width="1.6"/>
+  <rect x="290" y="25" width="102" height="40" rx="2" stroke-width="1.6"/>${weak?'<rect x="295" y="30" width="92" height="30" rx="1" stroke-width="1.2"/>':''}
+  <polygon points="150,45 200,17 250,45 200,73" stroke-width="1.6"/>${weak?'<polygon points="161,45 200,23 239,45 200,67" stroke-width="1.2"/>':''}
+  ${side(110,150,lTotal)}${side(250,290,rTotal)}
+  ${lOne?'<path class="fill" d="M110 45l12-6v12z"/>':''}${rOne?'<path class="fill" d="M290 45l-12-6v12z"/>':''}
+  <text x="59" y="50" text-anchor="middle" font-weight="600" font-size="13">${svgEsc(l)}</text>
+  <text x="341" y="50" text-anchor="middle" font-weight="600" font-size="13">${svgEsc(r)}</text>
+  <text x="200" y="49" text-anchor="middle" font-style="italic" font-size="12">${svgEsc(rel)}</text></svg>`;
 }
-function crow(a,b,rel,leftEnd,rightEnd){
-  return `<svg viewBox="0 0 400 90" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
-  <rect x="8" y="25" width="102" height="40" rx="6" fill="#dbe9ff" stroke="#1c2b45" stroke-width="2"/>
-  <rect x="290" y="25" width="102" height="40" rx="6" fill="#dbe9ff" stroke="#1c2b45" stroke-width="2"/>
-  <text x="59" y="50" text-anchor="middle" font-weight="800" font-size="13" fill="#1c2b45">${a}</text>
-  <text x="341" y="50" text-anchor="middle" font-weight="800" font-size="13" fill="#1c2b45">${b}</text>
-  <line x1="110" y1="45" x2="290" y2="45" stroke="#1c2b45" stroke-width="2.2"/>
-  <text x="200" y="36" text-anchor="middle" font-style="italic" font-size="13" fill="#1c2b45">${rel}</text>
-  ${crowSym(rightEnd)}
-  <g transform="translate(400,0) scale(-1,1)">${crowSym(leftEnd)}</g>
-  </svg>`;
+function isaFig({sup,subs,disjoint=false,total=false}){
+  return `<svg viewBox="0 0 400 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Specialisation of ${svgEsc(sup)}">
+  <rect x="149" y="8" width="102" height="36" rx="2" stroke-width="1.6"/>
+  ${total?'<line x1="197" y1="44" x2="197" y2="64" stroke-width="1.6"/><line x1="203" y1="44" x2="203" y2="64" stroke-width="1.6"/>':'<line x1="200" y1="44" x2="200" y2="64" stroke-width="1.6"/>'}
+  <polygon points="200,64 168,106 232,106" stroke-width="1.6"/>
+  <text x="200" y="98" text-anchor="middle" font-size="11" font-weight="600">ISA</text>
+  ${disjoint?'<text x="240" y="90" font-size="12" font-style="italic">disjoint</text>':''}
+  <line x1="190" y1="106" x2="115" y2="128" stroke-width="1.6"/><line x1="210" y1="106" x2="285" y2="128" stroke-width="1.6"/>
+  <rect x="60" y="128" width="110" height="34" rx="2" stroke-width="1.6"/><rect x="230" y="128" width="110" height="34" rx="2" stroke-width="1.6"/>
+  <text x="200" y="31" text-anchor="middle" font-weight="600" font-size="13">${svgEsc(sup)}</text>
+  <text x="115" y="150" text-anchor="middle" font-weight="600" font-size="13">${svgEsc(subs[0])}</text>
+  <text x="285" y="150" text-anchor="middle" font-weight="600" font-size="13">${svgEsc(subs[1])}</text></svg>`;
 }
+/* Dependency diagram: attrs = names, key = indexes of key attrs, deps = [{from:[i],to:[j],mvd,label}] */
+function depd(attrs,key,deps){
+  const w=attrs.map(a=>Math.max(54,Math.round(a.length*6.9)+16)); const x=[];let cx=6;w.forEach(v=>{x.push(cx);cx+=v+6;});
+  const W=cx, mid=i=>x[i]+w[i]/2, H=52+deps.length*20;
+  let s=attrs.map((a,i)=>`<rect x="${x[i]}" y="8" width="${w[i]}" height="26" rx="1" stroke-width="1.3"/><text x="${mid(i)}" y="25" text-anchor="middle" font-size="11.5" ${key.includes(i)?'text-decoration="underline" font-weight="700"':''}>${svgEsc(a)}</text>`).join('');
+  deps.forEach((d,k)=>{const y=50+k*20, all=d.from.concat(d.to).map(mid), lo=Math.min(...all), hi=Math.max(...all);
+    s+=d.from.map(i=>`<line x1="${mid(i)}" y1="34" x2="${mid(i)}" y2="${y}" stroke-width="1.3"/>`).join('');
+    s+=`<line x1="${lo}" y1="${y}" x2="${hi}" y2="${y}" stroke-width="1.3"/>`;
+    s+=d.to.map(j=>`<line x1="${mid(j)}" y1="${y}" x2="${mid(j)}" y2="36" stroke-width="1.3"/><path class="fill" d="M${mid(j)} 35l-4 7h8z"/>${d.mvd?`<path class="fill" d="M${mid(j)} 42l-4 7h8z"/>`:''}`).join('');
+    if(d.label)s+=`<text x="${hi+6}" y="${y+4}" font-size="10.5" font-style="italic">${svgEsc(d.label)}</text>`;});
+  return `<svg viewBox="0 0 ${W+90} ${H}" style="min-width:${Math.round((W+90)*1.05)}px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dependency diagram for ${svgEsc(attrs.join(', '))}">${s}</svg>`;
+}
+/* small HTML table for question stems */
+function qtbl(head,rows){return `<div class="tbl" style="margin-top:10px"><table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(v=>`<td>${v===null?'<i class="muted">NULL</i>':v}</td>`).join('')}</tr>`).join('')}</table></div>`;}
+/* relational notation, course format: underline the PK, then one "Foreign Key … references …" line per FK */
+const RN=(rel,fks=[])=>`<span class="rn">${rel}${fks.map(f=>`<br><span class="fk">Foreign Key ${f}</span>`).join('')}</span>`;
 
 /* =====================================================================
    WORLDS, LESSONS, CHALLENGES
    ===================================================================== */
 const WORLDS = [
-{ id:'er', name:'ER Bay', blurb:'Entities, attributes, relationships & cardinality', unit:'Units 1–3',
+{ id:'er', name:'ER Bay', blurb:'Paper Q1 (40 marks): read a scenario, model it as an ERD, then write the relational notation. Plus the DBMS, planning and ANSI/SPARC basics.', unit:'Lectures 1–6',
  lessons:[
-  ['What is an ER model?', `<p>An <b>Entity-Relationship (ER) model</b> is a picture of the data a business needs, drawn <i>before</i> you build any tables. It lives at the <b>conceptual level</b> of the ANSI/SPARC architecture.</p>
-   <ul><li><b>Entity</b>: a thing you store data about (noun). <code>STUDENT</code>, <code>COURSE</code></li>
-   <li><b>Attribute</b>: a property of an entity. <code>StudentID</code>, <code>Name</code></li>
-   <li><b>Relationship</b>: how entities connect (verb). STUDENT <i>enrols in</i> COURSE</li></ul>
-   <p><b>Trick:</b> in a case study, <b>nouns</b> become entities or attributes, and <b>verbs</b> become relationships.</p>`],
-  ['Cardinality (how many?)', `<ul><li><b>1:1</b> one to one. A lecturer <i>heads</i> one department.</li>
-   <li><b>1:M</b> one to many. A department <i>employs</i> many lecturers.</li>
-   <li><b>M:N</b> many to many. Students <i>enrol in</i> many courses, and courses have many students.</li></ul>
-   <p>Ask the question both ways: "One A has how many B?" then "One B has how many A?"</p>`],
-  ["Crow's foot notation", `<div class="fig">${crow('CUSTOMER','ORDER','places','one','zeroMany')}</div>
-   <ul><li><b>||</b> exactly one (mandatory)</li><li><b>o|</b> zero or one (optional)</li>
-   <li><b>|&lt;</b> one or many</li><li><b>o&lt;</b> zero or many</li></ul>
-   <p>Read the symbol at the <b>far</b> end. Above: one customer places <b>zero or many</b> orders, and each order belongs to <b>exactly one</b> customer.</p>`],
-  ['Keys & attribute types', `<ul><li><b>Primary key</b>: unique, never null, doesn't change (StudentID, TRN).</li>
-   <li><b>Composite attribute</b>: made of parts (Address = street, town, parish).</li>
-   <li><b>Multivalued</b>: can have many values (phone numbers).</li>
-   <li><b>Derived</b>: calculated from others (Age from DateOfBirth).</li>
-   <li><b>Weak entity</b>: can't be identified without its owner (DEPENDENT of EMPLOYEE).</li></ul>`],
-  ['Generalization / specialization', `<p>A <b>superclass</b> holds shared attributes. <b>Subclasses</b> add their own.</p>
-   <pre>        PERSON (id, name, phone)
-          /            \\
-   STUDENT (gpa)   LECTURER (salary)</pre>
-   <p>Going up (STUDENT + LECTURER → PERSON) is <b>generalization</b>. Going down is <b>specialization</b>.</p>`],
-  ['DBMS & ANSI/SPARC quick facts', `<ul><li><b>File system problems</b>: redundancy, inconsistency, data isolation, hard to share.</li>
-   <li><b>DBMS</b>: software that manages the database (sharing, security, integrity, backup, concurrency).</li>
-   <li><b>ANSI/SPARC levels</b>: <b>External</b> (user views) → <b>Conceptual</b> (whole logical design) → <b>Internal</b> (physical storage).</li>
-   <li><b>DDLC</b>: planning → requirements → conceptual design → logical design → physical design → implementation → testing → maintenance.</li></ul>`]
+  ['Files, databases and the DBMS', `<p>A <b>traditional file system</b> stores each department's data in its own files. It is simple, but it causes:</p>
+   <ul><li><b>Data redundancy</b>: the same data is copied in many files.</li><li><b>Inconsistency</b>: an update reaches one copy but not the others.</li>
+   <li><b>Difficulty sharing</b> across departments, <b>weak security</b>, and <b>poor integration</b> ("data silos").</li></ul>
+   <p>A <b>database</b> is a collection of interrelated records. A <b>DBMS</b> is the software used to define, store, manipulate, retrieve and manage it. It enforces integrity rules, controls access, supports many users at once and protects data through crashes.</p>
+   <p><b>Drawbacks of a database</b>, split the way exams ask:</p>
+   <ul><li><b>Risks</b> (might happen): organisational conflicts, development project failure, system failure (one failure hits everyone).</li>
+   <li><b>Costs</b> (will be paid): overhead for hardware and software, the need for sophisticated personnel, converting the old files.</li></ul>`],
+  ['Strategic planning, the DDLC and ANSI/SPARC', `<p><b>Strategic database planning</b> is a corporate effort to work out the organisation's information needs well into the future. It matters because it shows management's understanding of its data, identifies and justifies the resources needed, spots chances for departments to share data, sets action plans, and gives staff a sense of direction. It needs senior management support and a team drawn from across the business.</p>
+   <p>Once the plan is approved, each database is built with the <b>Database Development Life Cycle (DDLC)</b>:</p>
+   <ol><li>Preliminary planning</li><li>Feasibility study (technological, operational, economic)</li><li>Requirements definition</li><li>Design (conceptual, then logical and physical)</li><li>Implementation</li><li>Evaluation and maintenance</li></ol>
+   <p><b>ANSI/SPARC three-level architecture</b>:</p>
+   <ul><li><b>External</b>: individual user views. <i>A partial version of a file with only names and addresses.</i></li>
+   <li><b>Conceptual (logical)</b>: what data is stored for the whole organisation and how it is related. <i>Definitions of all files and fields and the relationships between them.</i></li>
+   <li><b>Internal (physical)</b>: how data is actually stored. <i>Indexes, disk addresses, pointers.</i></li></ul>
+   <p><b>Schema</b> = the overall design. <b>Instance</b> = the data in the database at one moment. <b>Data model</b> = the tools used to describe data (ER model, relational model).</p>`],
+  ['Building blocks and attribute types', `<p>An ERD is built <b>from the scenario</b>. Stick to what it says, even if a real business would work differently.</p>
+   <ul><li><b>Entity</b> (rectangle): a noun you store data about. PATIENT, ALBUM.</li><li><b>Attribute</b> (oval): a fact about an entity.</li><li><b>Relationship</b> (diamond): a verb linking entities. Patient <i>books</i> Appointment.</li></ul>
+   <p>Attribute types and how the scenario signals them:</p>
+   <ul><li><b>Simple</b>: one atomic value. <i>date of birth</i></li>
+   <li><b>Composite</b>: made of parts. <i>name (first, middle, last)</i>, <i>address (street, town, parish)</i></li>
+   <li><b>Multivalued</b> (double oval): "one or more", "all", "may have many". <i>one or more phone numbers</i>. Phone1, Phone2, Phone3 is <b>not</b> multivalued; that is bad design.</li>
+   <li><b>Derived</b> (dashed oval): calculated. <i>age</i> from DOB, <i>duration</i> from start and end dates.</li>
+   <li><b>Unique identifier</b> (underlined): <i>automatically generated ID</i>, <i>TRN</i>.</li></ul>`],
+  ['Cardinality, participation and degree', `<div class="fig">${erd({l:'STUDENT',r:'COURSE',rel:'registers',rOne:true,rTotal:false})}</div>
+   <p><b>Cardinality method</b>: never start with "many". Start each direction with ONE occurrence, read left → right, then right → left, keep the maximum on each side. Then: <b>arrow = ONE, no arrow = MANY</b>. Above, one student registers for at most one course, and a course has many students.</p>
+   <p><b>Participation</b>: ask "MUST this entity take part?"</p>
+   <ul><li><b>Total / mandatory</b> (double line): "must", "cannot exist unless", "each … is led by". The FK on that side can't be NULL.</li><li><b>Partial / optional</b> (single line): "may", "not all", "some".</li></ul>
+   <div class="fig">${erd({l:'CUSTOMER',r:'LOAN',rel:'borrows',rTotal:true})}</div>
+   <p>Every loan must have a customer (double line on LOAN). Customers may borrow jointly, so there are no arrows (M:N).</p>
+   <p><b>Degree</b>: <b>unary / recursive</b> (one entity set, e.g. employee supervises employee; label the roles), <b>binary</b> (two), <b>ternary</b> (three), N-ary.</p>`],
+  ['Weak entities, relationship sets and aggregation', `<div class="fig">${erd({l:'LOAN',r:'PAYMENT',rel:'loan-pay',lOne:true,rTotal:true,weak:true})}</div>
+   <p>A <b>weak entity</b> (double rectangle) has no unique identifier of its own. It is identified through its owner by an identifying relationship (double diamond) plus a <b>discriminator</b> (dashed underline). Clue words: "numbered sequentially <i>within</i>", "unique only within", "starting at 1 for each". Payment 1, 2, 3 repeats for every loan, so PAYMENT is weak and its key is (loanNumber, paymentNumber).</p>
+   <p><b>Relationship attributes</b>: when a fact belongs to the <i>pairing</i>, put it on the relationship, not on either entity. "Date rented and date returned every time a book is rented" belongs on RENTS. Only M:N relationships carry attributes in this course.</p>
+   <p><b>Aggregation</b>: the ER model can't draw a relationship to a relationship. Box the relationship set (with its entities) and treat it as an entity so it can join another relationship. Clue: "every <i>rental</i> must be handled by an employee", "the review applies to the specific <i>diagnosis</i>", "the award is for an artist's <i>performance</i> on a track".</p>`],
+  ['Specialisation and generalisation', `<div class="fig">${isaFig({sup:'PERSON',subs:['EMPLOYEE','CUSTOMER'],disjoint:true,total:true})}</div>
+   <p>Subclasses <b>inherit</b> the superclass's attributes and relationships, and add their own (Employee: salary, Customer: credit rating).</p>
+   <ul><li><b>Disjoint</b> (the word <i>disjoint</i> on the ISA): an entity can belong to at most one subclass. "either … or".</li>
+   <li><b>Overlapping</b> (no word): it can belong to several. "can be both".</li>
+   <li><b>Total</b> (double line above ISA): every superclass entity must be in a subclass.</li>
+   <li><b>Partial</b> (single line): some belong to no subclass. "occasionally takes on casual staff" (casual staff have no subclass).</li></ul>
+   <p>Specialisation is the top-down view (split a group); generalisation is bottom-up (pull common attributes into a superclass).</p>`],
+  ['From ERD to relational notation', `<p>Write each relation as <b>Name(attributes)</b>, <u>underline</u> the primary key, and list every foreign key underneath.</p>
+   <pre>Employee(<u>TRN</u>, fName, lName, street, town, parish, dob)
+Emp_Phone(<u>TRN</u>, <u>phoneNumber</u>)
+    Foreign Key TRN references Employee</pre>
+   <ul><li><b>Entity</b> → a relation. Composite attributes become their parts.</li>
+   <li><b>Multivalued</b> → a new relation (owner key + value), both underlined.</li>
+   <li><b>1:M</b> → PK of the "one" side goes into the "many" side as an FK.</li>
+   <li><b>1:1</b> → FK on one side (prefer the total-participation side), kept unique.</li>
+   <li><b>M:N</b> → a bridge relation: both keys (PK together) + the relationship's attributes.</li>
+   <li><b>Weak entity</b> → owner's key + discriminator form the PK; the owner's key is also an FK.</li>
+   <li><b>Unary 1:M</b> → an FK in the same relation: <code>supervisorTRN references Employee</code>. Unary M:N → a bridge with two FKs to the same relation.</li>
+   <li><b>Specialisation</b> → one relation per subclass; its PK is also an FK to the superclass.</li>
+   <li><b>Aggregation</b> → the relationship that touches the aggregate stores the aggregate's whole key as an FK.</li></ul>`]
  ],
  ch:[
-  {type:'sort', q:'Read the case, then tag each word.', sub:'“A library lends books to members. Each member has a member ID, a name and a phone. Each book has an ISBN and a title. A member <b>borrows</b> a book on a date.”',
-   cats:['Entity','Attribute','Relationship'], items:[['Member',0],['Book',0],['borrows',2],['ISBN',1],['phone',1],['title',1]],
-   hint:'Nouns that have their own properties are entities. Verbs connecting them are relationships.',
-   why:'MEMBER and BOOK are entities because they have their own properties. "Borrows" is the relationship. ISBN, phone and title describe entities, so they are attributes. The borrow date belongs to the relationship itself.'},
-  {type:'mcq', q:'Each department employs many lecturers. Each lecturer works in one department. What is the cardinality?', opts:['1:1','1:M','M:N','It depends on the lecturer'], a:1,
-   hint:'Ask both directions: 1 dept → ? lecturers, 1 lecturer → ? depts.', why:'One department has many lecturers, but one lecturer has just one department. That makes it one-to-many (1:M).'},
-  {type:'mcq', q:'A student enrols in many courses and each course has many students. What cardinality is this?', opts:['1:1','1:M','M:N','0:1'], a:2,
-   why:'Both sides are "many", so it is many-to-many (M:N). It will need a junction table later.'},
-  {type:'mcq', q:'Read this diagram. Which sentence is correct?', fig:crow('CUSTOMER','ORDER','places','one','zeroMany'),
-   opts:['A customer places exactly one order','A customer places zero or many orders; each order belongs to exactly one customer','An order can belong to many customers','Each customer must place at least one order'], a:1,
-   hint:'Read the symbol at the FAR end from the entity you start with.', why:'The ORDER end shows o< (zero or many). The CUSTOMER end shows || (exactly one).'},
-  {type:'mcq', q:'What does this crow’s foot diagram say?', fig:crow('LECTURER','DEPARTMENT','heads','one','zeroOne'),
-   opts:['Every lecturer heads exactly one department','A department is headed by exactly one lecturer; a lecturer heads zero or one department','A department has many heads','Lecturers and departments are M:N'], a:1,
-   why:'Read the symbol at the far end. A lecturer heads <b>o|</b> (zero or one) department, the symbol beside DEPARTMENT. A department is headed by <b>||</b> (exactly one) lecturer, the symbol beside LECTURER. This is an optional 1:1.'},
-  {type:'mcq', q:'Which attribute is the BEST primary key for a STUDENT entity?', opts:['Full name','Date of birth','StudentID','Phone number'], a:2,
-   why:'A primary key must be unique, never null and stable. Names and birthdays repeat, and phone numbers change. StudentID is designed to be unique.'},
-  {type:'sort', q:'Classify each EMPLOYEE attribute.', cats:['Simple','Composite','Multivalued','Derived'],
-   items:[['TRN',0],['Address (street, town, parish)',1],['Phone numbers',2],['Age (from DOB)',3],['Full name (first, last)',1],['Years employed',3]],
-   hint:'Derived = calculated. Multivalued = could hold several values. Composite = made of sub-parts.',
-   why:'TRN is one atomic value (simple). Address and full name break into parts (composite). An employee can have several phone numbers (multivalued). Age and years employed are calculated from dates (derived).'},
-  {type:'mcq', q:'A DEPENDENT (an employee’s child) is identified only by name together with the employee’s ID. DEPENDENT is a…', opts:['Strong entity','Weak entity','Derived attribute','Associative entity'], a:1,
-   why:'A weak entity cannot be uniquely identified by its own attributes. It depends on its owner (EMPLOYEE) through an identifying relationship.'},
-  {type:'mcq', q:'An EMPLOYEE supervises other EMPLOYEES. What kind of relationship is this?', opts:['Binary','Ternary','Unary (recursive)','Generalization'], a:2,
-   why:'The entity relates to itself, so it is unary, also called recursive.'},
-  {type:'mcq', q:'PERSON holds id, name and phone. STUDENT and LECTURER each add their own attributes. PERSON is the…', opts:['Weak entity','Superclass (generalization)','Associative entity','Subclass'], a:1,
-   why:'PERSON is the superclass. STUDENT and LECTURER are subclasses that inherit its attributes. This is generalization/specialization.'},
-  {type:'mcq', q:'“Every order MUST be placed by a customer.” On the ORDER side, this participation is…', opts:['Optional (partial)','Mandatory (total)','Recursive','Derived'], a:1,
-   why:'MUST means total, or mandatory, participation. In crow’s foot it is shown with a bar (|), not a circle (o).'},
-  {type:'mcq', q:'In the ANSI/SPARC architecture, where does the ER model (the whole logical design) live?', opts:['External level','Conceptual level','Internal level','Physical file level'], a:1,
-   why:'The conceptual level describes the whole database logically. External = individual user views. Internal = how the data is physically stored.'},
-  {type:'mcq', q:'Which is a DISADVANTAGE of the traditional file system compared to a DBMS?', opts:['Centralized control','Data redundancy and inconsistency','Concurrent access control','Enforced integrity constraints'], a:1,
-   why:'File systems duplicate data across separate files, so copies get out of sync. The other options are DBMS advantages.'}
+  {type:'sort', q:'Classify each drawback of a database system as a risk or a cost.', cats:['Risk','Cost'],
+   items:[['Organisational conflicts over who owns the data',0],['The development project fails',0],['A system failure stops every department at once',0],['Overhead for new hardware and DBMS software',1],['Hiring sophisticated personnel such as a DBA',1],['Converting data out of the old files',1]],
+   hint:'A risk might happen. A cost will definitely be paid.',
+   why:'Risks are things that <i>might</i> go wrong: conflict, project failure, system failure. Costs are certain spending: overheads, skilled staff, data conversion.'},
+  {type:'sort', q:'Identify the ANSI/SPARC level for each item.', cats:['External','Conceptual','Internal'],
+   items:[['An index giving the disk address of each PERSONNEL record',2],['A partial PERSONNEL file with only each employee’s name and address',0],['Names of all files and fields, with how fields in different files relate',1],['The pointers that link stored records',2],['The payroll clerk’s screen, showing only salaries',0],['Every entity and relationship the organisation stores',1]],
+   hint:'External = one user’s view. Conceptual = the whole logical design. Internal = physical storage.',
+   why:'Indexes, disk addresses and pointers are <b>internal</b>. A partial file for one user is <b>external</b>. Definitions of all data and their relationships are <b>conceptual</b>.'},
+  {type:'mcq', q:'Which list gives the six steps of the Database Development Life Cycle in order?',
+   opts:['Requirements definition, preliminary planning, design, feasibility study, implementation, evaluation and maintenance','Preliminary planning, feasibility study, requirements definition, design, implementation, evaluation and maintenance','Feasibility study, preliminary planning, design, requirements definition, testing, implementation','Design, implementation, requirements definition, feasibility study, normalisation, maintenance'], a:1,
+   why:'Plan, check feasibility (technological, operational, economic), define requirements, design, implement, then evaluate and maintain.'},
+  {type:'mcq', q:'Which statement best explains why strategic database planning matters to an organisation?',
+   opts:['It replaces the need for a DBA','It identifies and justifies the resources the organisation’s information needs will require, and the chances for departments to share data','It writes the SQL for every table','It guarantees the DBMS never fails'], a:1,
+   why:'Strategic planning treats data as a corporate resource. It sets out future information needs, justifies resources, spots shared-data opportunities and sets action plans. The DDLC then builds each database it proposes.'},
+  {type:'sort', q:'Read the case, then tag each word or phrase.', sub:'“A clinic stores each <b>patient’s</b> TRN and date of birth. <b>Doctors</b> have an ID and an email. A patient <b>books</b> an <b>appointment</b> with a doctor; each appointment has a date and a status.”',
+   cats:['Entity','Attribute','Relationship'], items:[['Patient',0],['Doctor',0],['Appointment',0],['books',2],['TRN',1],['status',1],['email',1]],
+   hint:'Nouns with their own facts are entities. Verbs linking them are relationships.',
+   why:'PATIENT, DOCTOR and APPOINTMENT each have their own facts, so they are entities. "Books" links them. TRN, email and status are facts about entities.'},
+  {type:'sort', q:'Classify each attribute the way the scenario describes it.', cats:['Simple','Composite','Multivalued','Derived','Identifier'],
+   items:[['A patient’s name (first, middle, last)',1],['One or more phone numbers per patient',2],['An automatically generated patientID',4],['Date of birth',0],['Time a researcher spent on a project, from the start and end dates',3],['All contact numbers an artist has',2],['Address (street, town, parish)',1]],
+   hint:'Parts = composite. "One or more" / "all" = multivalued. Calculated = derived.',
+   why:'Name and address have parts (composite). "One or more" and "all" signal multivalued attributes. A duration calculated from two dates is derived. A generated ID is the unique identifier.'},
+  {type:'mcq', q:'Read the diagram (arrow = one). Which sentence is correct?', fig:erd({l:'STUDENT',r:'COURSE',rel:'registers',rOne:true}),
+   opts:['A student registers for many courses; a course has one student','A student registers for at most one course; a course can have many students','Every student must register for a course','Student and course are M:N'], a:1,
+   hint:'The arrow points at the ONE side.', why:'The arrow points at COURSE, so each student relates to at most one course. No arrow at STUDENT, so a course has many students. Single lines mean participation is optional on both sides.'},
+  {type:'mcq', q:'What does the double line on the LOAN side mean?', fig:erd({l:'CUSTOMER',r:'LOAN',rel:'borrows',rTotal:true}),
+   opts:['A loan has exactly one customer','Every loan must be borrowed by at least one customer (total participation)','Loan is a weak entity','Every customer must have a loan'], a:1,
+   why:'A double line shows total (mandatory) participation for that entity: a loan cannot exist without a customer. With no arrows, the relationship is M:N, so loans can be joint.'},
+  {type:'mcq', q:'“An album contains several tracks; each track belongs to exactly one album.” Using the course notation, where does the arrow go?',
+   opts:['On the line to ALBUM','On the line to TRACK','On both lines','Nowhere, because this is M:N'], a:0,
+   hint:'One track → how many albums? One album → how many tracks?',
+   why:'One track belongs to ONE album, so the line to ALBUM gets the arrow. One album has MANY tracks, so the line to TRACK has none. It is 1:M.'},
+  {type:'mcq', q:'“An appointment has an AppointmentNo that is unique only within a specific doctor. An appointment cannot exist unless the doctor exists.” How is APPOINTMENT modelled?',
+   opts:['A strong entity with AppointmentNo as its key','A weak entity owned by DOCTOR, with AppointmentNo as the discriminator','A multivalued attribute of DOCTOR','A derived attribute'], a:1,
+   why:'AppointmentNo repeats across doctors, so it only works as a discriminator. APPOINTMENT is weak (double rectangle, identifying double diamond, total participation), and its key is (doctorID, AppointmentNo).'},
+  {type:'mcq', q:'“Each experiment is numbered sequentially within its research project.” What primary key will EXPERIMENT get in the relational notation?', html:true,
+   opts:['<code>Experiment(<u>seqNo</u>, …)</code>','<code>Experiment(<u>projectID</u>, <u>seqNo</u>, …)</code>, with projectID as an FK','<code>Experiment(<u>projectID</u>, …)</code>','<code>Project(<u>projectID</u>, seqNo, …)</code>'], a:1,
+   why:'"Numbered within" means EXPERIMENT is weak. Its PK is the owner’s key plus the discriminator: (projectID, seqNo). projectID is also an FK to Project.'},
+  {type:'mcq', q:'“A student may mentor other students (mentees). A mentee’s mentor can change over time, so the start and end dates of each mentorship are stored.” What is this?',
+   opts:['A binary 1:1 relationship between STUDENT and MENTOR','A unary (recursive) M:N relationship on STUDENT, with roles mentor and mentee and attributes startDate and endDate','A specialisation of STUDENT','A ternary relationship'], a:1,
+   why:'Only one entity set (STUDENT) takes part, twice, so it is unary. A mentee can have several mentors over time, and a mentor several mentees, so it is M:N, and the dates sit on the relationship.'},
+  {type:'mcq', q:'“A patient who refers other patients is also noted.” Each patient is referred by at most one patient. How does this appear in the relational notation?', html:true,
+   opts:['<code>Referral(<u>patientID</u>, <u>referredID</u>)</code> only','<code>Patient(<u>patientID</u>, …, referredBy)</code> with <code>Foreign Key referredBy references Patient</code>','<code>Patient(<u>patientID</u>, <u>referredBy</u>, …)</code>','It can’t be stored'], a:1,
+   why:'It is a unary 1:M relationship, so the "many" side (the referred patient) stores the key of the "one" side as an FK in the same relation.'},
+  {type:'mcq', q:'“For each condition diagnosed during an appointment, the clinic stores the doctor’s notes and the severity level.” Where do <i>notes</i> and <i>severity</i> belong?', html:true,
+   opts:['On CONDITION','On APPOINTMENT','On the M:N relationship <i>diagnoses</i> between APPOINTMENT and CONDITION','As multivalued attributes of DOCTOR'], a:2,
+   why:'The notes and severity describe one condition in one appointment, which is the pairing. They go on the relationship, which becomes the bridge Diagnosis(appointment key, conditionCode, notes, severity).'},
+  {type:'mcq', q:'“Each award recognises an artist’s performance on a particular track.” Which construct models this?',
+   opts:['A ternary relationship ARTIST–TRACK–AWARD with no other structure','Aggregation: treat PERFORMS (artist and track) as a higher-level entity and relate AWARD to it','A weak entity AWARD owned by ARTIST','A derived attribute of TRACK'], a:1,
+   why:'The award is about the <i>performance</i>, which is itself a relationship. Since ER can’t link a relationship to a relationship, box PERFORMS as an aggregate and relate AWARD to it.'},
+  {type:'mcq', q:'“Any diagnosis marked high severity must be reviewed by a specialist. The review applies to the specific diagnosis made for that appointment.” What is the best model?',
+   opts:['A REVIEWS relationship between DOCTOR and PATIENT','Aggregation of DIAGNOSES (appointment and condition), linked by REVIEWS to SPECIALIST, with reviewDate and decision on REVIEWS','A multivalued attribute review on CONDITION','A weak entity REVIEW owned by SPECIALIST'], a:1,
+   why:'The review targets one diagnosis, which is a relationship. Aggregate DIAGNOSES, relate it to SPECIALIST, and store the review’s date and decision on that relationship.'},
+  {type:'sort', q:'Name the specialisation constraint each scenario describes.', cats:['Total, disjoint','Partial, disjoint','Overlapping'],
+   items:[['Albums are classified as either studio albums or live albums.',0],['A firm has permanent and contract staff, and occasionally takes on casual staff who need no extra details.',1],['A university member can be a student, a staff member, or both.',2],['Doctors are either general practitioners or specialists.',0]],
+   hint:'“Either … or” = disjoint. “Or both” = overlapping. Someone left over with no subclass = partial.',
+   why:'Studio/live and GP/specialist: every entity is exactly one type (total, disjoint). Casual staff belong to no subclass, so that one is partial. "Or both" means overlapping.'},
+  {type:'mcq', q:'Read this specialisation. Which statement is correct?', fig:isaFig({sup:'DOCTOR',subs:['GP','SPECIALIST'],disjoint:true,total:true}),
+   opts:['A doctor may be both a GP and a specialist','Every doctor must be exactly one of GP or specialist','Some doctors are neither','GP and SPECIALIST are weak entities'], a:1,
+   why:'The double line above the ISA means total (every doctor is specialised). The word <i>disjoint</i> means a doctor is at most one subclass. Together: exactly one.'},
+  {type:'mcq', q:'“The company records all contact numbers for each artist.” What is the correct relational notation for the phone numbers?', html:true,
+   opts:['<code>Artist(<u>artistID</u>, …, phone1, phone2, phone3)</code>','<code>Artist_Phone(<u>artistID</u>, <u>phoneNumber</u>)</code><br>Foreign Key artistID references Artist','<code>Artist_Phone(<u>phoneNumber</u>, artistID)</code>','<code>Artist(<u>artistID</u>, <u>phoneNumber</u>, stageName, …)</code>'], a:1,
+   why:'A multivalued attribute becomes its own relation. The owner’s key plus the value form the PK, and the owner’s key is an FK. Numbered columns cap the count and leave blanks.'},
+  {type:'mcq', q:'Albums are specialised into studio albums (studio, producer) and live albums (venue, performanceDate). Which is the correct relation for a studio album?', html:true,
+   opts:['<code>Studio(<u>studioID</u>, producer)</code>','<code>Studio(<u>albumID</u>, studio, producer)</code><br>Foreign Key albumID references Album','<code>Album(<u>albumID</u>, title, studio, producer, venue, performanceDate)</code> only','<code>Studio(albumID, <u>producer</u>)</code>'], a:1,
+   why:'Each subclass gets its own relation. It inherits the superclass key, which is both its PK and an FK to Album.'},
+  {type:'mcq', q:'Artists perform on tracks (M:N), and each performance records the instrument and whether the artist was the lead. TRACK is weak: Track(<u>albumID</u>, <u>trackNo</u>, title, duration). Which relation stores the performances?', html:true,
+   opts:['<code>Performs(<u>artistID</u>, <u>trackNo</u>, instrument, isLead)</code>','<code>Performs(<u>artistID</u>, <u>albumID</u>, <u>trackNo</u>, instrument, isLead)</code><br>Foreign Key artistID references Artist<br>Foreign Key (albumID, trackNo) references Track','<code>Track(<u>albumID</u>, <u>trackNo</u>, artistID, instrument)</code>','<code>Artist(<u>artistID</u>, instrument, isLead)</code>'], a:1,
+   why:'An M:N becomes a bridge. It takes the <i>whole</i> key of each side. TRACK’s key is (albumID, trackNo), so both columns come across, plus the relationship attributes.'},
+  {type:'mcq', q:'An employee manages one department, and each department is managed by exactly one employee (1:1, total on DEPARTMENT). Best mapping?', html:true,
+   opts:['<code>Employee(<u>TRN</u>, …, deptName)</code> and <code>Department(<u>name</u>, budget, TRN)</code>','<code>Department(<u>name</u>, budget, TRN)</code><br>Foreign Key TRN references Employee, with TRN unique and NOT NULL','<code>Manages(<u>TRN</u>, <u>name</u>)</code> with no other change','<code>Department(<u>name</u>, <u>TRN</u>, budget)</code>'], a:1,
+   why:'For 1:1, put the FK on one side, preferably the side with total participation (every department has a manager, so TRN can’t be NULL). Mark it unique so no employee manages two departments.'}
  ]},
-{ id:'rel', name:'Relation Ridge', blurb:'Relational notation, keys, integrity, normalization, algebra', unit:'Units 4–5',
+{ id:'rel', name:'Relation Ridge', blurb:'Paper Q3 and Q4: keys, entity and referential integrity, anomalies, functional dependencies, dependency diagrams, and normalising a table to 4NF.', unit:'Lectures 5–8',
  lessons:[
-  ['Relational notation', `<p>Write each table as <b>NAME(attributes)</b>. <u>Underline</u> the primary key and mark foreign keys with <b>*</b> (or <i>italics</i>, depending on your lecturer).</p>
-   <pre>STUDENT(<u>StudentID</u>, FName, LName, Major)
-COURSE(<u>CourseCode</u>, Title, Credits)
-ENROLMENT(<u>StudentID*</u>, <u>CourseCode*</u>, Grade)</pre>`],
-  ['ER → Relations: the 3 rules', `<ul><li><b>Entity</b> → its own relation, with its key underlined.</li>
-   <li><b>1:M</b> → put the PK of the "1" side as an <b>FK in the "M" side</b>.<br><code>LECTURER(<u>LecID</u>, Name, DeptID*)</code></li>
-   <li><b>M:N</b> → make a <b>new junction relation</b> whose PK combines both FKs.<br><code>ENROLMENT(<u>StudentID*</u>, <u>CourseCode*</u>, Grade)</code></li>
-   <li><b>1:1</b> → put the FK on either side (prefer the side with total participation).</li></ul>`],
-  ['Vocabulary', `<ul><li><b>Relation</b> = table · <b>Tuple</b> = row · <b>Attribute</b> = column</li>
-   <li><b>Domain</b> = the allowed values for an attribute</li>
-   <li><b>Degree</b> = number of attributes · <b>Cardinality</b> = number of tuples</li>
-   <li><b>Entity integrity</b>: a PK can never be NULL.</li>
-   <li><b>Referential integrity</b>: an FK must match an existing PK, or be NULL.</li></ul>`],
-  ['Functional dependency & normal forms', `<p><code>A → B</code> means "if you know A, you know B" (StudentID → Name).</p>
-   <ul><li><b>1NF</b>: atomic values and no repeating groups.</li>
-   <li><b>2NF</b>: 1NF plus no <b>partial</b> dependency (a non-key column depending on <i>part</i> of a composite key).</li>
-   <li><b>3NF</b>: 2NF plus no <b>transitive</b> dependency (non-key → non-key).</li>
-   <li><b>BCNF</b>: every determinant is a candidate key.</li>
-   <li><b>4NF</b>: BCNF plus no independent <b>multi-valued</b> dependencies.</li></ul>
-   <p>Memory line: "The key, the whole key, and nothing but the key."</p>`],
-  ['Relational algebra cheat sheet', `<ul><li><b>σ</b> select: filter <i>rows</i>. <code>σ Major='CS' (STUDENT)</code></li>
-   <li><b>π</b> project: pick <i>columns</i>. <code>π Name (STUDENT)</code></li>
-   <li><b>⋈</b> join: combine on matching values</li>
-   <li><b>∪ ∩ −</b> union, intersection, difference (tables must be union-compatible)</li>
-   <li><b>×</b> Cartesian product · <b>÷</b> division ("for ALL")</li></ul>
-   <p>Work inside out: <code>π Name (σ GPA&gt;3.5 (STUDENT))</code> means filter first, then pick columns.</p>
-   <p><b>Relational calculus</b> says <i>what</i> you want: <code>{ t.Name | STUDENT(t) ∧ t.GPA &gt; 3.5 }</code>. ∃ means "there exists" and ∀ means "for all".</p>`]
+  ['The relational model', `<ul><li><b>Relation</b> = table · <b>Tuple</b> = row · <b>Attribute</b> = column · <b>Degree</b> = number of attributes · <b>Cardinality</b> = number of tuples</li>
+   <li><b>Domain</b>: the set of allowed values for an attribute. The <i>attribute</i> is the named column; the <i>domain</i> is what it may hold (e.g. grade ∈ {A, B, C, D, F}).</li>
+   <li><b>Superkey</b>: any set of attributes that identifies a tuple.</li>
+   <li><b>Candidate key</b>: a minimal superkey. A table can have several (TRN, email).</li>
+   <li><b>Primary key</b>: the one candidate key chosen to identify tuples. The rest are <b>alternate keys</b>.</li>
+   <li><b>Foreign key</b>: an attribute that refers to a primary key in another (or the same) relation.</li></ul>`],
+  ['Integrity rules', `<ul><li><b>Entity integrity</b>: no part of a primary key can be NULL, and PK values must be unique.</li>
+   <li><b>Referential integrity</b>: every foreign key value must match an existing primary key value in the referenced relation, or be NULL (if the FK is optional).</li></ul>
+   <p>A <b>FOREIGN KEY constraint</b> makes the DBMS reject an insert or update whose FK value has no matching PK, and restrict (or cascade, or set NULL) deletes and updates of a referenced PK, so orphan rows can’t appear.</p>`],
+  ['Functional dependency and anomalies', `<p><code>X → Y</code>: if two rows agree on X, they must agree on Y. X is the <b>determinant</b>. Find FDs from uniqueness statements ("each promotion code has one name") and from each identifier.</p>
+   <p>Redundant tables suffer three <b>anomalies</b>:</p>
+   <ul><li><b>Insertion</b>: you can’t add a fact without unrelated data (a new employee with no project yet needs a ProjectCode).</li>
+   <li><b>Update</b>: changing one fact means changing many rows; miss one and the data is inconsistent.</li>
+   <li><b>Deletion</b>: deleting a row loses other facts you meant to keep.</li></ul>
+   <p>They happen because one table stores facts about more than one thing. Normalisation fixes them by splitting the table.</p>`],
+  ['Types of dependency', `<p>With a composite key (A, B):</p>
+   <ul><li><b>Full</b>: a non-key attribute depends on the <i>whole</i> key. A, B → C</li>
+   <li><b>Partial</b>: it depends on <i>part</i> of the key. A → D (breaks 2NF)</li>
+   <li><b>Transitive</b>: a non-key attribute depends on another non-key attribute. D → E (breaks 3NF)</li>
+   <li><b>BCNF violation</b>: a non-key attribute determines part of the key. E → B</li>
+   <li><b>Multi-valued</b> <code>A →→ B</code>: one A has several independent B values (and several C values). Breaks 4NF.</li></ul>
+   <div class="fig">${depd(['OrderNo','Item','OrderDate','CustID','CustName'],[0,1],[{from:[0],to:[2,3],label:'partial'},{from:[3],to:[4],label:'transitive'}])}</div>
+   <p>In a <b>dependency diagram</b>, the key is underlined and arrows run from each determinant to what it determines. Label each one.</p>`],
+  ['1NF, 2NF and 3NF', `<ul><li><b>1NF</b>: every attribute is atomic, with no repeating groups or lists. This is the minimum every relation must meet. Fix: move the multivalued attribute to its own relation.</li>
+   <li><b>2NF</b>: 1NF and no partial dependencies. Only tables with a <b>composite</b> key can break 2NF; a 1NF table with a single-attribute key is automatically 2NF. Fix: move the partially dependent attributes out with the part of the key they depend on.</li>
+   <li><b>3NF</b>: 2NF and no transitive dependencies. Fix: move B → C into its own relation; B stays behind as an FK.</li></ul>
+   <p>Kent’s line: every non-key attribute depends on <b>the key</b> (1NF: there is a key), <b>the whole key</b> (2NF) and <b>nothing but the key</b> (3NF).</p>`],
+  ['BCNF and 4NF', `<p><b>BCNF (3.5NF)</b>: every determinant is a candidate key. It catches the case 3NF misses: a key attribute that depends on a non-key attribute.</p>
+   <pre>R(A, B, C, D)   B,C → A,D   D → B     (D is not a key)
+R2(<u>D</u>, B)
+R(<u>D</u>, <u>C</u>, A)   Foreign Key D references R2</pre>
+   <p><b>4NF</b>: BCNF and no non-trivial multi-valued dependencies. An MVD needs a key of at least three attributes, where one attribute has several values of two others that are <b>independent</b> of each other.</p>
+   <pre>Student(<u>studentID</u>, <u>course</u>, <u>hobby</u>)   course and hobby are independent
+→ Student_Course(<u>studentID</u>, <u>course</u>)
+  Student_Hobby(<u>studentID</u>, <u>hobby</u>)</pre>`],
+  ['The exam method for normalisation', `<ol><li>List the FDs (and any MVD) from the table and the statements.</li>
+   <li>Find the candidate key: the smallest set that determines everything.</li>
+   <li>Draw the dependency diagram and label each dependency as partial, transitive or multi-valued.</li>
+   <li>State the current normal form (any partial dependency means 1NF).</li>
+   <li>Remove the partial dependencies (2NF), then the transitive ones (3NF), then check BCNF, then split MVDs (4NF).</li>
+   <li>Write the final relations with PKs underlined and every <b>Foreign Key … references …</b> line.</li></ol>
+   <pre>Delivery(OrderNo, Item, OrderDate, CustID, CustName, RiderID, RiderName)
+OrderNo → OrderDate, CustID, RiderID   CustID → CustName
+RiderID → RiderName                    OrderNo →→ Item
+
+Customer(<u>CustID</u>, CustName)
+Rider(<u>RiderID</u>, RiderName)
+Orders(<u>OrderNo</u>, OrderDate, CustID, RiderID)
+    Foreign Key CustID references Customer
+    Foreign Key RiderID references Rider
+Order_Item(<u>OrderNo</u>, <u>Item</u>)
+    Foreign Key OrderNo references Orders</pre>`]
  ],
  ch:[
-  {type:'mcq', q:'Which is correct relational notation for STUDENT with key StudentID?', opts:['STUDENT(StudentID, <u>Name</u>, Major)','<u>STUDENT</u>(StudentID, Name, Major)','STUDENT(<u>StudentID</u>, Name, Major)','STUDENT = StudentID + Name + Major'], a:2, html:true,
-   why:'The relation name comes first, then the attributes in brackets, with the primary key underlined.'},
-  {type:'mcq', q:'DEPARTMENT 1 ──< many LECTURER. Which mapping is correct?', html:true,
-   opts:['DEPARTMENT(<u>DeptID</u>, Name, LecID*)','LECTURER(<u>LecID</u>, Name, DeptID*)','DEPT_LEC(<u>DeptID*</u>, <u>LecID*</u>)','LECTURER(<u>LecID</u>, <u>DeptID</u>, Name)'], a:1,
-   hint:'The foreign key goes on the MANY side.', why:'For 1:M, copy the PK of the "one" side (DeptID) into the "many" side (LECTURER) as a foreign key.'},
-  {type:'mcq', q:'STUDENT M:N COURSE, and the grade is stored per enrolment. Best mapping?', html:true,
-   opts:['STUDENT(<u>StudentID</u>, Name, CourseCode*, Grade)','COURSE(<u>Code</u>, Title, StudentID*)','ENROLMENT(<u>StudentID*</u>, <u>CourseCode*</u>, Grade)','ENROLMENT(<u>Grade</u>, StudentID, CourseCode)'], a:2,
-   why:'An M:N needs a junction relation. Its PK is the combination of both FKs, and the grade belongs to the pairing, so it goes there too.'},
-  {type:'sort', q:'Match each term to its meaning.', cats:['Row','Column','Table','# of columns','# of rows','Allowed values'],
-   items:[['Tuple',0],['Attribute',1],['Relation',2],['Degree',3],['Cardinality',4],['Domain',5]],
-   why:'Tuple = row, Attribute = column, Relation = table, Degree = number of columns, Cardinality = number of rows, Domain = the set of allowed values.'},
-  {type:'mcq', q:'Inserting a STUDENT row with StudentID = NULL is rejected. Which rule was broken?', opts:['Referential integrity','Entity integrity','Domain integrity','2NF'], a:1,
-   why:'Entity integrity says no part of a primary key may be NULL.'},
-  {type:'mcq', q:'ENROLMENT has StudentID = 99, but there is no student 99. Which rule is broken?', opts:['Entity integrity','Referential integrity','1NF','Transitive dependency'], a:1,
-   why:'Referential integrity says a foreign key must match an existing primary key (or be NULL).'},
-  {type:'mcq', q:'Table: ENROLMENT(<u>StudentID</u>, <u>CourseCode</u>, StudentName, Grade). Which dependency breaks 2NF?', html:true,
-   opts:['StudentID, CourseCode → Grade','StudentID → StudentName','CourseCode → CourseCode','Grade → StudentID'], a:1,
-   hint:'2NF is about depending on only PART of a composite key.', why:'StudentName depends on only part of the key (StudentID). That is a partial dependency, so the table is not in 2NF. Move StudentName into STUDENT.'},
-  {type:'mcq', q:'STUDENT(<u>StudentID</u>, Name, DeptID, DeptName). DeptID → DeptName. This table violates…', html:true,
-   opts:['1NF','2NF','3NF (transitive dependency)','Entity integrity'], a:2,
-   why:'StudentID → DeptID → DeptName means a non-key column depends on another non-key column. That transitive dependency breaks 3NF. Split it out into DEPARTMENT(<u>DeptID</u>, DeptName).'},
-  {type:'mcq', q:'A STUDENT table has columns Phone1, Phone2, Phone3. What is the problem?', opts:['Repeating group, so it is not in 1NF','Transitive dependency','Partial dependency','Nothing is wrong'], a:0,
-   why:'Repeating columns are a repeating group, which breaks 1NF. Fix it with STUDENT_PHONE(<u>StudentID*</u>, <u>Phone</u>).'},
-  {type:'mcq', q:'The department name is stored in every student row. Renaming the department means editing 500 rows, and some get missed. This is a(n)…', opts:['Insertion anomaly','Update anomaly','Deletion anomaly','Referential integrity'], a:1,
-   why:'Redundant data must be changed in many places, which causes inconsistency. That is an update anomaly, and normalization prevents it.'},
-  {type:'mcq', q:'LECTURER(<u>LecID</u>, <u>Course</u>, <u>Hobby</u>), where courses and hobbies are independent facts. To fix it, split into…', html:true,
-   opts:['LEC_COURSE(<u>LecID</u>, <u>Course</u>) and LEC_HOBBY(<u>LecID</u>, <u>Hobby</u>)','One table with Hobby1, Hobby2','LECTURER(<u>LecID</u>, Course, Hobby)','No change needed'], a:0,
-   why:'Two independent multi-valued facts in one table is a multi-valued dependency, which breaks 4NF. Give each fact its own table.'},
-  {type:'build', q:'Build the relational algebra: names of students majoring in CS.', sub:'Filter the rows first, then pick the column.',
-   tokens:['π Name','σ Major=\'CS\'','(',')','(',')','STUDENT','⋈','σ Name'], answer:['π Name','(','σ Major=\'CS\'','(','STUDENT',')',')'],
-   hint:'Outside → inside: π Name ( σ … ( STUDENT ) )', why:'π Name (σ Major=\'CS\' (STUDENT)). σ keeps the CS rows, then π keeps only the Name column.'},
-  {type:'mcq', q:'Which operator answers “students who took ALL the courses”?', opts:['∪ Union','× Cartesian product','÷ Division','σ Select'], a:2,
-   why:'Division (÷) finds tuples related to every tuple in another relation. It is the "for all" query.'},
-  {type:'mcq', q:'R ∪ S only works when R and S are…', opts:['The same size','Union-compatible (same number of attributes with matching domains)','Joined first','In 3NF'], a:1,
-   why:'Union, intersection and difference need union-compatible relations: same degree and matching domains.'},
-  {type:'mcq', q:'What does this relational calculus return? <code>{ t.Name | STUDENT(t) ∧ t.GPA &gt; 3.5 }</code>', html:true,
-   opts:['Every student’s GPA','Names of students with GPA above 3.5','Number of students','Students with GPA at most 3.5'], a:1,
-   why:'The target list (t.Name) comes before |. The qualifying statement comes after it: t is a STUDENT and GPA > 3.5.'}
+  {type:'mcq', q:'Does this Student table satisfy entity integrity? (StudentID is the primary key.)', sub:qtbl(['StudentID','FirstName','LastName'],[['2001','Alicia','Brown'],[null,'Marcus','Grant'],['2003',null,'Thomas'],['2001','David','Lee']]),
+   opts:['Yes, every row has a last name','No: one primary key is NULL and 2001 appears twice','No, because FirstName is NULL in one row','Yes, NULLs are allowed in keys'], a:1,
+   why:'Entity integrity needs every PK value to be present and unique. Row 2 has a NULL key and 2001 is repeated. A NULL FirstName is fine, since it isn’t part of the key.'},
+  {type:'sort', q:'Department holds D01, D02 and D03. Check each new Employee row (EmpID is the PK, DeptID is an optional FK).', sub:qtbl(['DeptID','DeptName'],[['D01','Human Resources'],['D02','IT'],['D03','Finance']]),
+   cats:['Valid','Breaks referential integrity','Breaks entity integrity'],
+   items:[['(E100, Carla, D01)',0],['(E101, Ryan, D05)',1],['(NULL, Tanya, D02)',2],['(E103, Mark, NULL)',0],['(E104, Dion, D09)',1]],
+   hint:'Referential integrity is about the FK; entity integrity is about the PK.',
+   why:'D05 and D09 don’t exist in Department, which breaks referential integrity. A NULL EmpID breaks entity integrity. A NULL DeptID is allowed when the FK is optional.'},
+  {type:'mcq', q:'How does a FOREIGN KEY constraint prevent referential integrity violations?',
+   opts:['It makes the column unique','The DBMS rejects any insert or update whose FK value has no matching PK, and restricts or cascades deletes of referenced rows','It sorts the table by the key','It stops NULLs in the primary key'], a:1,
+   why:'The constraint ties the FK to the referenced PK. Unmatched values are rejected, and deleting a referenced row is restricted, cascaded or set to NULL, so no orphans appear.'},
+  {type:'mcq', q:'Which statement correctly compares candidate keys and primary keys?',
+   opts:['A table has only one candidate key','A candidate key is any minimal set of attributes that uniquely identifies a tuple; the primary key is the one candidate key chosen for that job','Primary keys may contain NULLs','A candidate key must be a foreign key'], a:1,
+   why:'A relation may have several candidate keys (TRN, email). The designer picks one as the primary key; the rest become alternate keys.'},
+  {type:'mcq', q:'Which statement correctly contrasts an attribute with a domain?',
+   opts:['They are the same thing','An attribute is a named column of a relation; a domain is the set of allowed values that attribute can take','A domain is a row','An attribute is the set of all tables'], a:1,
+   why:'The attribute <i>grade</i> is the column; its domain is {A, B+, B, …, F}. Several attributes can share one domain.'},
+  {type:'sort', q:'This table stores staff and their project hours. Name the anomaly each action causes.', sub:qtbl(['StaffID','ProjectCode','ProjBudget','Hours','StaffName','DeptName'],[['E1011','CMP23','55','10','Ali Bryan','HR'],['E1011','MAT21','63','7','Ali Bryan','HR'],['E1024','CMP23','55','5','Dee Small','Sales'],['E1032','MAT21','63','2','Bram Sterling','Finance']]),
+   cats:['Insertion','Update','Deletion'],
+   items:[['Adding new employee E3166 to Finance before they join a project',0],['Changing CMP23’s budget from 55 to 61',1],['Removing E1032’s only project row',2],['Correcting Ali Bryan’s name',1]],
+   hint:'Can’t add without extra data? Must change many rows? Lose other facts when you delete?',
+   why:'A new employee can’t be stored without a ProjectCode, which is part of the key (insertion). The budget and name are repeated, so every copy must change (update). Deleting E1032’s only row also loses the fact that Finance exists (deletion).'},
+  {type:'sort', q:'True or false: does each dependency hold in this table?', sub:qtbl(['TutorID','TutorName','StudentNo','StudentName','SessionDate','SessionTime','RoomNo'],[['T01','Dana Kerr','S10','Kemoy Rose','2026-03-02','10:00','R12'],['T01','Dana Kerr','S14','Lena Fraser','2026-03-09','11:00','R15'],['T02','Omar Bell','S43','Toni Bryan','2026-03-02','14:00','R12'],['T02','Omar Bell','S43','Toni Bryan','2026-03-04','13:00','R12'],['T03','Ivy Lord','S06','Milo Shaw','2026-03-05','10:00','R15']]),
+   cats:['True','False'],
+   items:[['TutorID → TutorName',0],['RoomNo → SessionDate',1],['TutorName → StudentNo',1],['TutorID, StudentNo, SessionDate → SessionTime, RoomNo',0]],
+   hint:'Look for two rows that agree on the left side but differ on the right.',
+   why:'R12 appears with two different dates, so RoomNo doesn’t determine SessionDate. Dana Kerr appears with S10 and S14, so TutorName doesn’t determine StudentNo. The other two never break.'},
+  {type:'mcq', q:'What is a full functional dependency, and how does it relate to 2NF?',
+   opts:['An attribute that depends on any single column','A non-key attribute that depends on the whole composite key and not on any part of it; 2NF requires every non-key attribute to be fully dependent','A dependency between two non-key attributes','A dependency that only exists in 3NF'], a:1,
+   why:'If removing any part of the key breaks the dependency, it is full. 2NF means 1NF plus every non-key attribute fully dependent on the key (no partial dependencies).'},
+  {type:'mcq', q:'What is the minimum normal form every relation must satisfy?',
+   opts:['1NF: every attribute holds a single atomic value, with no repeating groups','2NF','3NF','BCNF'], a:0,
+   why:'A table that holds lists or repeating groups isn’t a proper relation. 1NF (atomic values) is the minimum; the higher forms are design goals.'},
+  {type:'mcq', q:'Delivery(OrderNo, Item, OrderDate, CustID, CustName, RiderID, RiderName). One order has several items. FDs: OrderNo → OrderDate, CustID, RiderID; CustID → CustName; RiderID → RiderName; OrderNo →→ Item. What is the candidate key?',
+   opts:['OrderNo','(OrderNo, Item)','(CustID, RiderID)','(OrderNo, CustID)'], a:1,
+   why:'OrderNo alone repeats once per item, so it can’t identify a row. (OrderNo, Item) does, and together they determine everything else.'},
+  {type:'sort', q:'Using the Delivery table (key: OrderNo, Item), classify each dependency.', fig:depd(['OrderNo','Item','OrderDate','CustID','CustName','RiderID','RiderName'],[0,1],[{from:[0],to:[2,3,5]},{from:[3],to:[4]},{from:[5],to:[6]},{from:[0],to:[1],mvd:true}]),
+   cats:['Partial','Transitive','Multi-valued'],
+   items:[['OrderNo → OrderDate, CustID, RiderID',0],['CustID → CustName',1],['RiderID → RiderName',1],['OrderNo →→ Item',2]],
+   hint:'Part of the key → partial. Non-key → non-key → transitive. →→ is multi-valued.',
+   why:'OrderNo is only part of the key, so those are partial. CustID and RiderID are non-key, so their arrows are transitive. One order has many items, independent of the rest: multi-valued.'},
+  {type:'mcq', q:'What normal form is the Delivery table in, and why?', fig:depd(['OrderNo','Item','OrderDate','CustID','CustName','RiderID','RiderName'],[0,1],[{from:[0],to:[2,3,5]},{from:[3],to:[4]},{from:[5],to:[6]}]),
+   opts:['3NF, because it has a key','1NF: values are atomic, but there are partial dependencies on OrderNo','2NF, because there are no partial dependencies','BCNF'], a:1,
+   why:'Atomic values and a key give 1NF. OrderNo → OrderDate, CustID, RiderID depends on only part of (OrderNo, Item), which is a partial dependency, so it isn’t in 2NF.'},
+  {type:'mcq', q:'Which is the correct 4NF decomposition of Delivery?', html:true,
+   opts:['<code>Delivery(<u>OrderNo</u>, <u>Item</u>, OrderDate, CustID, CustName, RiderID, RiderName)</code>',
+     '<code>Customer(<u>CustID</u>, CustName)</code><br><code>Rider(<u>RiderID</u>, RiderName)</code><br><code>Orders(<u>OrderNo</u>, OrderDate, CustID, RiderID)</code> FKs CustID → Customer, RiderID → Rider<br><code>Order_Item(<u>OrderNo</u>, <u>Item</u>)</code> FK OrderNo → Orders',
+     '<code>Orders(<u>OrderNo</u>, Item, OrderDate)</code><br><code>Customer(<u>CustID</u>, CustName, RiderName)</code>',
+     '<code>Order_Item(<u>OrderNo</u>, <u>Item</u>, CustName)</code><br><code>Rider(<u>RiderID</u>, RiderName)</code>'], a:1,
+   why:'Partial: OrderNo → OrderDate, CustID, RiderID moves to Orders. Transitive: CustName and RiderName move to Customer and Rider. MVD: items go to Order_Item. Each FK is listed.'},
+  {type:'mcq', q:'Plan(BranchID, PlanCode, BranchAddr, Supervisor, SupPhone, PlanName, PlanTerms, Total). FDs: BranchID → BranchAddr, Supervisor; Supervisor → SupPhone; PlanCode → PlanName; PlanName → PlanTerms; BranchID, PlanCode → Total. Which dependency is <b>transitive</b>?', html:true,
+   opts:['BranchID → BranchAddr','BranchID, PlanCode → Total','PlanName → PlanTerms','PlanCode → PlanName'], a:2,
+   why:'PlanName is a non-key attribute and it determines another non-key attribute (PlanTerms), so that one is transitive. Supervisor → SupPhone is transitive too. BranchID → … and PlanCode → … are partial, since the key is (BranchID, PlanCode). BranchID, PlanCode → Total is full.'},
+  {type:'mcq', q:'Room(<u>roomNumber</u>, buildingCode, roomType, rentalCost), where roomType → rentalCost (studio 3000, lab 5000, empty 1500). How do you reach 3NF?', html:true,
+   opts:['Add rentalCost to the key','<code>Rental(<u>roomType</u>, rentalCost)</code> and <code>Room(<u>roomNumber</u>, buildingCode, roomType)</code> with Foreign Key roomType references Rental','Split Room by building','It’s already in 3NF'], a:1,
+   why:'roomType is non-key and determines rentalCost (transitive). Move roomType and rentalCost into their own relation; roomType stays in Room as an FK.'},
+  {type:'mcq', q:'Tutoring(<u>studentID</u>, <u>subject</u>, tutor). Each tutor teaches only one subject: tutor → subject. Why is it not in BCNF, and what is the fix?', html:true,
+   opts:['It has a partial dependency; split out studentID','tutor is a determinant but not a candidate key; split into <code>TutorSubject(<u>tutor</u>, subject)</code> and <code>StudentTutor(<u>studentID</u>, <u>tutor</u>)</code>','It has a repeating group; add tutor2','It is already in BCNF because it is in 3NF'], a:1,
+   why:'BCNF needs every determinant to be a candidate key. tutor determines a key attribute (subject) but isn’t a key. Move tutor → subject out, and tutor replaces subject in the original.'},
+  {type:'mcq', q:'Lecturer(<u>lecID</u>, <u>course</u>, <u>hobby</u>): courses and hobbies are independent facts about a lecturer. Which split gives 4NF?', html:true,
+   opts:['<code>Lec_Course(<u>lecID</u>, <u>course</u>)</code> and <code>Lec_Hobby(<u>lecID</u>, <u>hobby</u>)</code>','One table with hobby1, hobby2','<code>Lecturer(<u>lecID</u>, course, hobby)</code>','No change needed'], a:0,
+   why:'lecID →→ course and lecID →→ hobby are independent multi-valued dependencies. Storing them together forces every course–hobby combination. Give each its own table.'},
+  {type:'mcq', q:'Kent: a non-key attribute must depend on “the key, the whole key, and nothing but the key.” Which part is the 2NF rule and which is the 3NF rule?',
+   opts:['“The key” = 2NF; “the whole key” = 3NF','“The whole key” = 2NF (no partial dependencies); “nothing but the key” = 3NF (no transitive dependencies)','“Nothing but the key” = 2NF; “the whole key” = 3NF','All three parts describe 1NF'], a:1,
+   why:'"The whole key" forbids depending on part of a composite key (partial, 2NF). "Nothing but the key" forbids depending on a non-key attribute (transitive, 3NF).'},
+  {type:'mcq', q:'Customer(<u>customerID</u>, firstName, lastName, dob, emails), where emails holds several addresses. Which fix gives 1NF?', html:true,
+   opts:['Rename emails to email','<code>Customer(<u>customerID</u>, firstName, lastName, dob)</code> and <code>Customer_Email(<u>customerID</u>, <u>email</u>)</code> with Foreign Key customerID references Customer','Add email1, email2, email3','Make emails the primary key'], a:1,
+   why:'A list in one field isn’t atomic. Move the multivalued attribute to its own relation keyed by owner and value.'}
  ]},
-{ id:'sql', name:'SQL Lab', blurb:'Live SQLite: SELECT, JOIN, GROUP BY, INSERT, CREATE…', unit:'Unit 7',
+{ id:'sql', name:'SQL Lab', blurb:'Paper Q2: write SQL and relational algebra against exam-style schemas. The SQL runs on real SQLite, and the relational algebra is executed too.', unit:'Labs · Lecture 9',
  lessons:[
-  ['The lab database', `<p>This SQL runs on a <b>real SQLite engine inside the page</b>. There is nothing to install. Tables:</p>
-   <pre>student(id, fname, lname, major, gpa, year, parish)
-course(code, title, credits, lecturer)
-enrolment(student_id, course_code, grade, score)</pre>
-   <p>Tap <b>Tables</b> in any SQL challenge to peek at the data.</p>`],
+  ['The lab databases', `<p>Everything here runs on a <b>real SQLite engine inside the page</b>. There are three exam-style case studies:</p>
+   <pre>-- Firm
+Department(<u>deptID</u>, deptName, location, establishedDate)
+Employee(<u>empID</u>, firstName, lastName, position, hireDate,
+         salary, deptID, supervisorID)
+Client(<u>clientID</u>, firstName, lastName, email, phone, address)
+Project(<u>projectID</u>, projectName, startDate, status, budget,
+        clientID, empID)
+-- Workshops
+Trainer(<u>trainerID</u>, firstName, lastName, email, hourlyRate)
+Venue(<u>venueID</u>, venueName, parish, capacity, rentalCost)
+Workshop(<u>workshopID</u>, title, wkshopDate, fee, maxParticipants,
+         status, venueID, trainerID)
+Participant(<u>participantID</u>, firstName, lastName, email, phone, country)
+Registration(<u>registrationID</u>, regDate, amtPaid, regStatus,
+             workshopID, participantID)
+-- University
+Student(<u>studentID</u>, studentName, major, country)
+Course(<u>courseID</u>, courseTitle, credits)
+Lecturer(<u>lecturerID</u>, lecturerName, department)
+Enrollment(<u>studentID</u>, <u>courseID</u>, <u>semester</u>, grade)
+Teaches(<u>lecturerID</u>, <u>courseID</u>, <u>semester</u>)</pre>
+   <p>Dates are stored as <code>'YYYY-MM-DD'</code> text, so <code>hireDate &lt; '2020-01-01'</code> works. Tap <b>Tables</b> in an exercise to see the data.</p>`],
   ['SELECT skeleton', `<pre>SELECT columns        -- what
 FROM table            -- where from
 WHERE condition       -- which rows
 GROUP BY column       -- make groups
 HAVING group_cond     -- filter groups
-ORDER BY column DESC  -- sort
-LIMIT n;</pre><p>Memory line: <b>S</b>ome <b>F</b>riendly <b>W</b>orms <b>G</b>et <b>H</b>ungry <b>O</b>ften.</p>`],
-  ['Filtering', `<pre>WHERE major = 'CS' AND gpa >= 3.5
-WHERE lname LIKE 'W%'      -- starts with W
-WHERE major IN ('IT','SE')
-WHERE gpa BETWEEN 3 AND 3.5
-WHERE parish IS NULL</pre><p>Text goes in <b>'single quotes'</b>.</p>`],
-  ['Aggregates & GROUP BY', `<pre>SELECT major, COUNT(*), AVG(gpa)
-FROM student
-GROUP BY major
-HAVING AVG(gpa) > 3.3;</pre><p><b>WHERE</b> filters rows <i>before</i> grouping. <b>HAVING</b> filters groups <i>after</i>.</p>`],
-  ['JOINs', `<pre>SELECT s.fname, c.title
-FROM student s
-JOIN enrolment e ON s.id = e.student_id
-JOIN course c    ON c.code = e.course_code;</pre>
-   <p><b>LEFT JOIN</b> keeps every row from the left table, even with no match (the missing columns become NULL).</p>`],
-  ['Changing data (DML) & structure (DDL)', `<pre>INSERT INTO student VALUES (9,'Ricky','Barnes','SE',3.0,1,'Portland');
-UPDATE student SET gpa = 2.8 WHERE id = 5;
-DELETE FROM enrolment WHERE grade = 'F';
+ORDER BY column DESC; -- sort</pre><p>Memory line: <b>S</b>ome <b>F</b>riendly <b>W</b>orms <b>G</b>et <b>H</b>ungry <b>O</b>ften.</p>`],
+  ['Filtering and patterns', `<pre>WHERE address LIKE '%Pen%'      -- contains Pen
+WHERE country LIKE '_z%'        -- 2nd character is z
+WHERE status IN ('pending','complete')
+WHERE budget > 2000000 OR status = 'pending'
+WHERE hireDate &lt; '2020-01-01'
+WHERE strftime('%m', startDate) = '12'   -- December (SQLite)
+-- MySQL / SQL Server: MONTH(startDate) = 12</pre>
+   <p><code>%</code> = any run of characters, <code>_</code> = exactly one. Text goes in <b>'single quotes'</b>.</p>`],
+  ['Joins, self-joins and outer joins', `<pre>SELECT p.projectName, c.firstName, c.email
+FROM project p JOIN client c ON p.clientID = c.clientID;
 
-CREATE TABLE lecturer(
-  lec_id INTEGER PRIMARY KEY,
-  name TEXT NOT NULL,
-  dept TEXT);
-ALTER TABLE student ADD COLUMN email TEXT;</pre>
-   <p><b>Careful:</b> an UPDATE or DELETE <b>without WHERE</b> hits every row.</p>`]
+-- self-join: each employee with their supervisor
+SELECT e.firstName, s.firstName AS supervisor
+FROM employee e JOIN employee s ON e.supervisorID = s.empID;
+
+-- include employees with NO projects
+SELECT e.firstName, COUNT(p.projectID)
+FROM employee e LEFT JOIN project p ON e.empID = p.empID
+GROUP BY e.empID;</pre>
+   <p><b>LEFT JOIN</b> keeps every row from the left table. Count a column from the right table (<code>COUNT(p.projectID)</code>), not <code>COUNT(*)</code>, so unmatched rows count as 0.</p>`],
+  ['Aggregates, HAVING and subqueries', `<pre>-- total salary bill per department, A to Z
+SELECT d.deptName, SUM(e.salary)
+FROM department d JOIN employee e ON d.deptID = e.deptID
+GROUP BY d.deptName ORDER BY d.deptName;
+
+-- clients with more than one project
+… GROUP BY c.clientID HAVING COUNT(*) > 1;
+
+-- the highest salary (ties included)
+SELECT firstName, lastName, salary FROM employee
+WHERE salary = (SELECT MAX(salary) FROM employee);</pre>
+   <p><b>WHERE</b> filters rows before grouping; <b>HAVING</b> filters groups after. Use the MAX subquery rather than <code>LIMIT 1</code>, which hides ties.</p>`],
+  ['Changing data and structure', `<pre>UPDATE employee SET salary = salary * 1.18
+WHERE hireDate &lt; '2020-01-01';           -- 18% raise
+UPDATE workshop SET fee = fee * 0.95
+WHERE status = 'cancelled';               -- cut by 5%
+DELETE FROM client WHERE address LIKE '%Pen%';
+INSERT INTO project VALUES (7009,'Website Redesign','2026-12-01',
+  'pending',1500000,3003,5008);
+
+CREATE TABLE contract(
+  contractID INTEGER PRIMARY KEY,
+  empID INTEGER REFERENCES employee(empID),
+  salary REAL CHECK (salary >= 0),
+  status TEXT CHECK (status IN ('active','ended')));
+ALTER TABLE employee ADD COLUMN gender TEXT DEFAULT 'female';
+CREATE VIEW vwStaff AS SELECT firstName, lastName FROM employee;</pre>
+   <p><b>Careful:</b> an UPDATE or DELETE <b>without WHERE</b> hits every row.</p>`],
+  ['Relational algebra', `<ul><li><b>σ</b> select rows: <code>σ fee &gt; 25000 (Workshop)</code> ↔ WHERE</li>
+   <li><b>π</b> project columns: <code>π title, fee (Workshop)</code> ↔ SELECT DISTINCT list</li>
+   <li><b>⋈</b> natural join on same-named attributes ↔ JOIN … ON</li>
+   <li><b>×</b> Cartesian product ↔ FROM A, B</li>
+   <li><b>∪ ∩ −</b> union, intersection, difference (relations must be union-compatible) ↔ UNION, INTERSECT, EXCEPT</li>
+   <li><b>ρ</b> rename: <code>ρ S2 (Student)</code> for self-joins · <b>←</b> assignment to a temporary relation</li>
+   <li>Connectives: <b>∧</b> and, <b>∨</b> or, <b>¬</b> not. Compare with = ≠ &lt; &gt; ≤ ≥.</li></ul>
+   <p>Precedence: π σ ρ first, then × ⋈, then ∩, then ∪ −. Use brackets: <code>π title (σ status='cancelled' (Workshop ⋈ Venue))</code>.</p>
+   <p><b>"Not any" pattern</b> (very common in exams): everyone minus those who appear.</p>
+   <pre>π firstName, lastName (Trainer) − π firstName, lastName (Trainer ⋈ Workshop)</pre>
+   <p>In the exercises you type the algebra and it runs. Use the symbol keys, or type <code>-</code>, <code>&lt;-</code>, <code>and</code>, <code>or</code>, <code>not</code>, <code>&lt;&gt;</code>.</p>`],
+  ['Relational calculus', `<p>Calculus says <i>what</i> you want, not how. Tuple calculus is written <code>{ target list | qualifying statement }</code>.</p>
+   <pre>{ s.studentName | Student(s) ∧ s.country = 'Canada' }
+{ l.lecturerName | Lecturer(l) ∧ ¬∃ t (Teaches(t) ∧ t.lecturerID = l.lecturerID) }</pre>
+   <p><b>∃</b> there exists · <b>∀</b> for all. The second query reads: lecturers for whom no Teaches tuple exists, so they teach no course.</p>`]
  ],
  ch:[
-  {type:'sql', q:'Show everything in the student table.', expect:'SELECT * FROM student;', hint:'SELECT * FROM …', why:'<code>SELECT *</code> returns every column, and with no WHERE you get every row.'},
-  {type:'sql', q:'Show only each student’s first name and GPA.', expect:'SELECT fname, gpa FROM student;', hint:'List the columns separated by commas.', why:'Choosing specific columns is a projection (π in relational algebra).'},
-  {type:'sql', q:'Show all students majoring in CS.', expect:"SELECT * FROM student WHERE major='CS';", hint:"WHERE major = 'CS' (text needs single quotes)", why:'WHERE filters rows. This is σ in relational algebra.'},
-  {type:'sql', q:'Show the fname and gpa of students with a GPA of at least 3.5, highest GPA first.', order:true, expect:'SELECT fname, gpa FROM student WHERE gpa >= 3.5 ORDER BY gpa DESC;', hint:'>= 3.5 and ORDER BY gpa DESC', why:'ORDER BY … DESC sorts from high to low. "At least" means >=.'},
-  {type:'sql', q:'Find students whose last name starts with “W”.', expect:"SELECT * FROM student WHERE lname LIKE 'W%';", hint:"LIKE 'W%'  (% = any characters)", why:'In LIKE, % matches any sequence of characters and _ matches exactly one.'},
-  {type:'sql', q:'Show each major and how many students are in it.', expect:'SELECT major, COUNT(*) FROM student GROUP BY major;', hint:'SELECT major, COUNT(*) … GROUP BY major', why:'GROUP BY makes one group per major, and COUNT(*) counts the rows in each group.'},
-  {type:'sql', q:'Show each major and its average GPA, but only majors whose average GPA is above 3.3.', expect:'SELECT major, AVG(gpa) FROM student GROUP BY major HAVING AVG(gpa) > 3.3;', hint:'Filter groups with HAVING, not WHERE.', why:'HAVING filters after grouping. WHERE cannot use AVG() because the groups don’t exist yet at that point.'},
-  {type:'sql', q:'List each student’s first name next to the title of every course they are enrolled in.', expect:'SELECT s.fname, c.title FROM student s JOIN enrolment e ON s.id=e.student_id JOIN course c ON c.code=e.course_code;', hint:'student → enrolment (s.id = e.student_id) → course (c.code = e.course_code)', why:'Going from STUDENT to COURSE passes through the junction table ENROLMENT, so you need two joins.'},
-  {type:'sql', q:'Show the first and last names of students enrolled in CMP2018.', expect:"SELECT s.fname, s.lname FROM student s JOIN enrolment e ON s.id=e.student_id WHERE e.course_code='CMP2018';", hint:'JOIN enrolment, then WHERE course_code = …', why:'Join to get the enrolments, then filter them with WHERE.'},
-  {type:'sql', q:'Show fname and gpa of students whose GPA is higher than the overall average GPA. Use a sub-query.', expect:'SELECT fname, gpa FROM student WHERE gpa > (SELECT AVG(gpa) FROM student);', hint:'WHERE gpa > (SELECT AVG(gpa) FROM student)', why:'The inner query runs first and gives one number (3.3). The outer query then compares each row against it.'},
-  {type:'sql', q:'Show every course code and how many students are enrolled in it, including courses with 0 students.', expect:'SELECT c.code, COUNT(e.student_id) FROM course c LEFT JOIN enrolment e ON c.code=e.course_code GROUP BY c.code;', hint:'LEFT JOIN keeps unmatched courses. Count e.student_id, not *.', why:'LEFT JOIN keeps MAT1008 even though it has no enrolments. COUNT(e.student_id) skips NULLs, so its count is 0. COUNT(*) would wrongly give 1.'},
-  {type:'sql', dml:true, q:'Add a new student: id 9, Ricky Barnes, major SE, GPA 3.0, year 1, parish Portland.', expect:"INSERT INTO student VALUES (9,'Ricky','Barnes','SE',3.0,1,'Portland');", check:'SELECT * FROM student ORDER BY id;', hint:'INSERT INTO student VALUES (…7 values in column order…)', why:'INSERT adds a row. Values go in column order: id, fname, lname, major, gpa, year, parish.'},
-  {type:'sql', dml:true, q:'Dwayne Reid (id 5) passed a resit. Change his GPA to 2.8.', expect:'UPDATE student SET gpa = 2.8 WHERE id = 5;', check:'SELECT id, gpa FROM student ORDER BY id;', hint:'UPDATE … SET … WHERE id = 5', why:'Without the WHERE, every student would get 2.8.'},
-  {type:'sql', dml:true, q:'Delete every enrolment where the grade is F.', expect:"DELETE FROM enrolment WHERE grade='F';", check:'SELECT * FROM enrolment ORDER BY student_id, course_code;', hint:"DELETE FROM enrolment WHERE grade = 'F'", why:'DELETE removes whole rows that match the WHERE.'},
-  {type:'sql', dml:true, q:'Create a table <code>lecturer</code> with: lec_id (INTEGER, primary key), name (TEXT, NOT NULL), dept (TEXT).', html:true, expect:'CREATE TABLE lecturer(lec_id INTEGER PRIMARY KEY, name TEXT NOT NULL, dept TEXT);', check:"SELECT name, upper(type) AS type, \"notnull\", pk FROM pragma_table_info('lecturer');", hint:'CREATE TABLE lecturer( col TYPE constraints, … );', why:'This is DDL: it defines structure. PRIMARY KEY enforces entity integrity, and NOT NULL forbids empty values.'},
-  {type:'sql', dml:true, q:'Add a column <code>email</code> (TEXT) to the student table.', html:true, expect:'ALTER TABLE student ADD COLUMN email TEXT;', check:"SELECT name FROM pragma_table_info('student');", hint:'ALTER TABLE … ADD COLUMN …', why:'ALTER TABLE changes an existing table’s structure without losing its data.'}
+  {type:'sql', tables:CASES.firm, q:'Show the first name, last name and hire date of every employee hired before 1 January 2020.', expect:"SELECT firstName, lastName, hireDate FROM employee WHERE hireDate < '2020-01-01';", hint:"WHERE hireDate < '2020-01-01'", why:'Dates are stored as YYYY-MM-DD text, so they compare correctly as strings.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'All employees hired before 1 January 2020 receive an 18% salary increase. Make this change.', expect:"UPDATE employee SET salary = salary * 1.18 WHERE hireDate < '2020-01-01';", check:'SELECT empID, salary FROM employee ORDER BY empID;', hint:'UPDATE employee SET salary = salary * 1.18 WHERE …', why:'Multiplying by 1.18 adds 18%. The WHERE limits the raise to the six long-serving staff.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Remove every client that has “Pen” anywhere in their address.', expect:"DELETE FROM client WHERE address LIKE '%Pen%';", check:'SELECT clientID, address FROM client ORDER BY clientID;', hint:"LIKE '%Pen%'", why:'% on both sides means "contains". Penwood, Pen Lane and Pennsylvania all match.'},
+  {type:'sql', tables:CASES.firm, q:'Show the first name, last name and salary of the employee with the highest salary.', expect:'SELECT firstName, lastName, salary FROM employee WHERE salary = (SELECT MAX(salary) FROM employee);', hint:'WHERE salary = (SELECT MAX(salary) FROM employee)', why:'The subquery finds the maximum; the outer query returns whoever earns it, including any ties.'},
+  {type:'sql', order:true, tables:CASES.firm, q:'What is the total salary bill for each department? Show the department name and the total, with names in ascending order.', expect:'SELECT d.deptName, SUM(e.salary) FROM department d JOIN employee e ON d.deptID = e.deptID GROUP BY d.deptName ORDER BY d.deptName;', hint:'JOIN department, GROUP BY deptName, SUM(salary), ORDER BY deptName', why:'Join to get the names, group per department, SUM within each group, then sort A to Z.'},
+  {type:'sql', tables:CASES.firm, q:'Show each employee’s first name, last name and the number of projects assigned to them. Include employees with no projects.', expect:'SELECT e.firstName, e.lastName, COUNT(p.projectID) FROM employee e LEFT JOIN project p ON e.empID = p.empID GROUP BY e.empID;', hint:'LEFT JOIN project … GROUP BY e.empID, and COUNT(p.projectID)', why:'LEFT JOIN keeps the four employees with no projects. COUNT(p.projectID) skips their NULLs, so they show 0.'},
+  {type:'sql', tables:CASES.firm, q:'Show clients who have more than one project: their first name, last name and number of projects.', expect:'SELECT c.firstName, c.lastName, COUNT(*) FROM client c JOIN project p ON c.clientID = p.clientID GROUP BY c.clientID HAVING COUNT(*) > 1;', hint:'GROUP BY c.clientID HAVING COUNT(*) > 1', why:'HAVING filters the groups after counting. WHERE can’t use COUNT().'},
+  {type:'sql', tables:CASES.firm, q:'Retrieve the project(s) with the highest budget: show the project name and budget.', expect:'SELECT projectName, budget FROM project WHERE budget = (SELECT MAX(budget) FROM project);', hint:'There may be a tie, so don’t use LIMIT 1.', why:'Two projects share the top budget. The MAX subquery returns both; ORDER BY … LIMIT 1 would hide one.'},
+  {type:'sql', tables:CASES.firm, q:'Show the project name, budget, and the client’s first name and email for projects with a budget over 2,000,000 or that started in May.', expect:"SELECT p.projectName, p.budget, c.firstName, c.email FROM project p JOIN client c ON p.clientID = c.clientID WHERE p.budget > 2000000 OR strftime('%m', p.startDate) = '05';", hint:"SQLite: strftime('%m', p.startDate) = '05'. (MySQL: MONTH(p.startDate) = 5.)", why:'Join for the client details, then OR the two conditions. strftime pulls out the month in SQLite; MySQL uses MONTH().'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Insert a new project 7009 called “Website Redesign” for client Sasha Gayle (ID 3003), managed by employee Rohan Mitchell (ID 5008). It starts 2026-12-01, is pending, and has a budget of 1,500,000.', expect:"INSERT INTO project VALUES (7009,'Website Redesign','2026-12-01','pending',1500000,3003,5008);", check:'SELECT * FROM project ORDER BY projectID;', hint:'Column order: projectID, projectName, startDate, status, budget, clientID, empID', why:'Values go in the table’s column order. The client and employee are stored by their IDs, which are foreign keys.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Change the Employee table to include a new field <code>gender</code> that is set to female initially.', html:true, expect:"ALTER TABLE employee ADD COLUMN gender TEXT DEFAULT 'female';", check:'SELECT empID, gender FROM employee ORDER BY empID;', hint:"ALTER TABLE employee ADD COLUMN gender TEXT DEFAULT 'female'", why:'ALTER TABLE changes the structure without losing data. DEFAULT fills the new column for every existing row.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Create a table <code>contract</code> with contractID (integer primary key), empID (references employee), startDate (text) and salary, where salary cannot be negative.', html:true,
+   expect:'CREATE TABLE contract(contractID INTEGER PRIMARY KEY, empID INTEGER REFERENCES employee(empID), startDate TEXT, salary REAL CHECK (salary >= 0));',
+   check:"SELECT lower(name) AS name, pk FROM pragma_table_info('contract');",
+   verify(db){const n=sqlCount(db,"SELECT count(*) FROM pragma_foreign_key_list('contract') WHERE lower(\"table\")='employee'");if(!n)return 'empID should be a foreign key that references employee.';
+     if(!sqlTry(db,"INSERT INTO contract(contractID,empID,startDate,salary) VALUES (1,5001,'2026-01-01',1000)"))return 'A normal row (salary 1000) was rejected. Check the column names.';
+     if(sqlTry(db,"INSERT INTO contract(contractID,empID,startDate,salary) VALUES (2,5001,'2026-01-01',-5)"))return 'A negative salary was accepted. Add CHECK (salary >= 0).';return '';},
+   hint:'salary REAL CHECK (salary >= 0) and empID INTEGER REFERENCES employee(empID)', why:'CHECK makes the DBMS reject rows that break the rule. REFERENCES declares the foreign key.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Create a table <code>task</code> with taskID (integer primary key), title (text, not null), status, and projectID (references project). Status must be one of: pending, in progress, complete.', html:true,
+   expect:"CREATE TABLE task(taskID INTEGER PRIMARY KEY, title TEXT NOT NULL, status TEXT CHECK (status IN ('pending','in progress','complete')), projectID INTEGER REFERENCES project(projectID));",
+   check:"SELECT lower(name) AS name, \"notnull\", pk FROM pragma_table_info('task');",
+   verify(db){if(!sqlCount(db,"SELECT count(*) FROM pragma_foreign_key_list('task') WHERE lower(\"table\")='project'"))return 'projectID should be a foreign key that references project.';
+     let i=1;for(const s of ['pending','in progress','complete'])if(!sqlTry(db,`INSERT INTO task(taskID,title,status,projectID) VALUES (${i++},'t','${s}',7001)`))return `The status '${s}' was rejected. It should be allowed.`;
+     if(sqlTry(db,"INSERT INTO task(taskID,title,status,projectID) VALUES (9,'t','done',7001)"))return "The status 'done' was accepted. Use CHECK (status IN ('pending','in progress','complete')).";return '';},
+   hint:"status TEXT CHECK (status IN ('pending','in progress','complete'))", why:'CHECK … IN limits a column to a fixed list of values. NOT NULL forbids an empty title.'},
+  {type:'sql', dml:true, tables:CASES.firm, q:'Create a view <code>vwStaff</code> that shows, for every employee who has a supervisor: the employee’s first name, last name and salary, then the supervisor’s first name and last name.', html:true,
+   expect:'CREATE VIEW vwStaff AS SELECT e.firstName, e.lastName, e.salary, s.firstName, s.lastName FROM employee e JOIN employee s ON e.supervisorID = s.empID;', check:'SELECT * FROM vwStaff;',
+   hint:'Join employee to itself: FROM employee e JOIN employee s ON e.supervisorID = s.empID', why:'A self-join uses two aliases for the same table: one row plays the employee, the other the supervisor.'},
+  {type:'sql', dml:true, tables:CASES.wk, q:'Make sure the fees for all cancelled workshops are reduced by 5%.', expect:"UPDATE workshop SET fee = fee * 0.95 WHERE status = 'cancelled';", check:'SELECT workshopID, fee FROM workshop ORDER BY workshopID;', hint:"fee * 0.95 WHERE status = 'cancelled'", why:'Reducing by 5% leaves 95%, so multiply by 0.95.'},
+  {type:'sql', dml:true, tables:CASES.wk, q:'Create a view <code>vwWorkshopSchedule</code> showing the workshop title, date, fee, venue name, parish, trainer’s first name, last name, email and hourly rate (in that order) for all workshops that are not cancelled.', html:true,
+   expect:"CREATE VIEW vwWorkshopSchedule AS SELECT w.title, w.wkshopDate, w.fee, v.venueName, v.parish, t.firstName, t.lastName, t.email, t.hourlyRate FROM workshop w JOIN venue v ON w.venueID = v.venueID JOIN trainer t ON w.trainerID = t.trainerID WHERE w.status <> 'cancelled';",
+   check:'SELECT * FROM vwWorkshopSchedule;', hint:"Two joins (venue, trainer), then WHERE w.status <> 'cancelled'", why:'A view stores the query, not the data. Users can then SELECT from it like a table.'},
+  {type:'sql', dml:true, tables:CASES.wk, q:'Delete all participants who are from a country where the second character in the country’s name is a z.', expect:"DELETE FROM participant WHERE country LIKE '_z%';", check:'SELECT participantID, country FROM participant ORDER BY participantID;', hint:"_ matches exactly one character: '_z%'", why:'_ stands for the first character, z must be second, and % allows anything after. Uzbekistan and Czechia match.'},
+  {type:'sort', q:'Match each relational algebra operator to its SQL equivalent.', cats:['WHERE','SELECT column list','JOIN … ON','EXCEPT / NOT IN','UNION','FROM A, B'],
+   items:[['σ selection',0],['π projection',1],['⋈ natural join',2],['− difference',3],['∪ union',4],['× Cartesian product',5]],
+   why:'σ picks rows (WHERE), π picks columns (SELECT list), ⋈ matches rows (JOIN), − removes rows found in another relation (EXCEPT), ∪ combines (UNION), × pairs every row with every row (FROM A, B).'},
+  {type:'ra', tables:CASES.uni, q:'Show the names of all students who are from Canada.', expect:"π studentName (σ country = 'Canada' (Student))", hint:"π studentName ( σ country = 'Canada' ( Student ) )", why:'σ keeps the Canadian rows, then π keeps only the name. Work from the inside out.'},
+  {type:'ra', tables:CASES.uni, q:'Show the student names and grades of all students enrolled in course CMP2018.', expect:"π studentName, grade (σ courseID = 'CMP2018' (Student ⋈ Enrollment))", hint:"Join Student and Enrollment, select the course, project the two columns.", why:'Student ⋈ Enrollment matches on studentID. σ keeps CMP2018, then π keeps name and grade.'},
+  {type:'ra', tables:CASES.uni, q:'Show the names of lecturers who do not teach any course.', expect:'π lecturerName (Lecturer) − π lecturerName (Lecturer ⋈ Teaches)', hint:'All lecturers − lecturers who appear in Teaches', why:'The "not any" pattern: everyone, minus those found in the join. Both sides must project the same attributes (union-compatible).'},
+  {type:'ra', tables:CASES.wk, q:'Show the title, date and fee of all workshops that are cancelled and have a fee in excess of $25,000.', expect:"π title, wkshopDate, fee (σ status = 'cancelled' ∧ fee > 25000 (Workshop))", hint:'Combine two conditions with ∧ inside one σ.', why:'∧ (and) joins the two conditions in a single selection.'},
+  {type:'ra', tables:CASES.wk, q:'Show the first and last names of trainers who are not assigned to any workshop.', expect:'π firstName, lastName (Trainer) − π firstName, lastName (Trainer ⋈ Workshop)', hint:'Trainers − trainers who appear in a join with Workshop', why:'Trainer ⋈ Workshop keeps only trainers with workshops. Subtracting them from all trainers leaves the unassigned ones.'},
+  {type:'ra', tables:CASES.wk, q:'Show the first name, last name and email of all participants registered for a workshop in Kingston (parish) that is cancelled.', expect:"π firstName, lastName, email (σ parish = 'Kingston' ∧ status = 'cancelled' (Participant ⋈ Registration ⋈ Workshop ⋈ Venue))", hint:'Chain four natural joins, then one σ with ∧.', why:'Each ⋈ links on a shared key: participantID, then workshopID, then venueID. The selection then keeps cancelled Kingston workshops.'},
+  {type:'ra', tables:CASES.uni, q:'Use assignment (←) and intersection: show the IDs of lecturers who taught in both semester 2025-S2 and semester 2026-S1.', expect:"A ← π lecturerID (σ semester = '2025-S2' (Teaches))\nB ← π lecturerID (σ semester = '2026-S1' (Teaches))\nA ∩ B", hint:"A ← π lecturerID (σ semester = '2025-S2' (Teaches)), then B for 2026-S1, then A ∩ B", why:'Assignment names partial results. ∩ keeps the IDs that appear in both.'},
+  {type:'ra', tables:CASES.uni, q:'Use rename (ρ): show the names of other students who have the same major as Priya Singh.', expect:"π S2.studentName (σ S1.studentName = 'Priya Singh' ∧ S1.major = S2.major ∧ S2.studentName ≠ 'Priya Singh' (ρ S1 (Student) × ρ S2 (Student)))", hint:'ρ S1 (Student) × ρ S2 (Student), then compare S1.major = S2.major', why:'Renaming gives two copies of Student so each row can be compared with every other. This is how relational algebra does a self-join.'},
+  {type:'mcq', q:'Give the English meaning of: <code>π venueName (Venue) − π venueName (Venue ⋈ Workshop)</code>', html:true,
+   opts:['Names of all venues','Names of venues where no workshop is held','Names of venues that host every workshop','Workshops held at each venue'], a:1,
+   why:'The left side is every venue; the right side is venues that join to a workshop. The difference is the venues with no workshops.'},
+  {type:'mcq', q:'What does this relational calculus return? <code>{ l.lecturerName | Lecturer(l) ∧ ¬∃ t (Teaches(t) ∧ t.lecturerID = l.lecturerID) }</code>', html:true,
+   opts:['Every lecturer’s name','Names of lecturers who teach no course','Names of lecturers who teach every course','The number of lecturers'], a:1,
+   why:'¬∃ means "there is no". It returns lecturers for whom no Teaches tuple exists, the same answer as the difference query.'},
+  {type:'mcq', q:'R ∪ S, R ∩ S and R − S only work when R and S are…', opts:['The same size','Union-compatible: the same number of attributes with matching domains','Joined first','In 3NF'], a:1,
+   why:'Set operations compare whole tuples, so both sides need the same degree and matching domains.'}
  ]},
-{ id:'mongo', name:'Mongo Market', blurb:'Documents, find(), operators, embedded data', unit:'Unit 6 · NoSQL',
+{ id:'mongo', name:'Mongo Market', blurb:'Paper Q5 / Q6: what NoSQL is, how it differs from an RDBMS, its four families, structured vs semi-structured vs unstructured data, and keys in MongoDB.', unit:'Lecture 10',
  lessons:[
-  ['SQL vs MongoDB', `<ul><li>Table → <b>Collection</b> · Row → <b>Document</b> · Column → <b>Field</b></li>
-   <li>Documents are JSON-like (BSON) and can <b>embed</b> objects and arrays.</li>
-   <li>There is no fixed schema, so two documents can have different fields.</li></ul>
-   <pre>{ _id: 1, name: "Alex Watson", major: "CS", gpa: 3.4,
-  address: { parish: "Kingston" },
-  skills: ["SQL", "Python"],
-  courses: [ { code: "CMP2018", grade: "A" } ] }</pre>`],
-  ['find()', `<pre>db.students.find({})                  // all
-db.students.find({ major: "CS" })     // WHERE major='CS'
+  ['What NoSQL means', `<p><b>NoSQL</b> ("not only SQL") databases store data without fixed relational tables. They are:</p>
+   <ul><li><b>Schema-flexible</b>: records in one collection can have different fields.</li>
+   <li><b>Horizontally scalable</b>: add more cheap servers instead of a bigger one.</li>
+   <li><b>Distributed and highly available</b>, often with eventual consistency (BASE) instead of strict ACID.</li>
+   <li>Built for <b>big data</b>: large volume, high velocity, wide variety, and modern web and mobile apps.</li></ul>`],
+  ['NoSQL vs relational (RDBMS)', `<div class="tbl"><table><tr><th></th><th>RDBMS</th><th>NoSQL</th></tr>
+   <tr><td>Structure</td><td>Tables, fixed schema</td><td>Documents, key-value, columns, graphs</td></tr>
+   <tr><td>Schema</td><td>Defined first</td><td>Flexible, per record</td></tr>
+   <tr><td>Scaling</td><td>Vertical (bigger server)</td><td>Horizontal (more servers)</td></tr>
+   <tr><td>Consistency</td><td>ACID transactions</td><td>Often eventual (BASE)</td></tr>
+   <tr><td>Joins / integrity</td><td>Joins, enforced FKs</td><td>Few joins, app-managed links</td></tr>
+   <tr><td>Best for</td><td>Payments, records, reports</td><td>Varied, fast-growing, unstructured data</td></tr></table></div>
+   <p>Many systems use <b>both</b>: relational for accounts and money, NoSQL for catalogues, logs and posts.</p>`],
+  ['The four NoSQL families', `<ul><li><b>Document</b> (MongoDB, CouchDB): JSON-like documents. Product catalogues, user profiles, content management.</li>
+   <li><b>Key-value</b> (Redis, DynamoDB): a value looked up by a key. Sessions, shopping carts, caching.</li>
+   <li><b>Column-family / wide-column</b> (Cassandra, HBase): data stored by column families, built for huge write loads and analytics. Logs, IoT sensor data, time series.</li>
+   <li><b>Graph</b> (Neo4j): nodes and edges. Social networks, recommendations, fraud rings.</li></ul>
+   <p><b>Column vs document</b>: a column store groups values by column, so reading one attribute across millions of rows is fast. A document store keeps a whole record together as one nested document, so reading one object is fast and its fields can vary.</p>`],
+  ['Structured, semi-structured, unstructured', `<ul><li><b>Structured</b>: fixed schema, rows and columns, easy to query with SQL. <i>Customer accounts, student records.</i></li>
+   <li><b>Semi-structured</b>: no fixed table, but self-describing tags or keys, and fields can vary. <i>JSON, XML, logs with varying attributes, a catalogue where products have different attributes.</i></li>
+   <li><b>Unstructured</b>: no predefined model. <i>Free text, images, audio, video, recorded lectures, posts with attachments.</i></li></ul>
+   <p>NoSQL handles semi-structured and unstructured data because it doesn’t force every record into the same columns. That matters for big data and modern web apps, where most new data is not tabular.</p>`],
+  ['MongoDB basics', `<ul><li>Table → <b>collection</b> · Row → <b>document</b> · Column → <b>field</b></li><li>Every document has a unique <code>_id</code> (its primary key).</li></ul>
+   <pre>db.students.find({ major: "CS" })
 db.students.find({ gpa: { $gt: 3.5 } })
 db.students.find({ "address.parish": "Kingston" })
-db.students.find({ skills: "SQL" })   // array contains</pre>
-   <p>Operators: <code>$gt $gte $lt $lte $ne $in $nin $or $and $exists $elemMatch</code></p>`],
-  ['Projection, sort, limit', `<pre>db.students.find({ year: 2 }, { name: 1, gpa: 1, _id: 0 })
-db.students.find({}).sort({ gpa: -1 }).limit(3)</pre>
-   <p>In a projection, 1 = show and 0 = hide. In sort, 1 = ascending and -1 = descending.</p>`],
-  ['Writing data', `<pre>db.students.insertOne({ _id: 9, name: "Ricky" })
-db.students.updateOne({ _id: 5 }, { $set: { gpa: 2.8 } })
-db.students.deleteOne({ _id: 3 })</pre>`],
-  ['Embed or reference?', `<ul><li><b>Embed</b> when the data is read together and owned by the parent (a student’s address).</li>
-   <li><b>Reference</b> (store an _id) when the data is shared, large, or grows without limit (a course that thousands of students take).</li></ul>`]
+db.students.insertOne({ _id: 9, name: "Ricky" })</pre>`],
+  ['Keys and relationships in MongoDB', `<ul><li><b>Primary key</b>: <code>_id</code>, unique in each collection.</li>
+   <li><b>"Foreign key"</b>: store the other document’s <code>_id</code> as a field (a <b>manual reference</b>, or a DBRef). Join it at query time with <code>$lookup</code> in an aggregation.</li>
+   <li>MongoDB does <b>not</b> enforce referential integrity; the application must.</li>
+   <li><b>Embed</b> data that is owned and read together (an address). <b>Reference</b> data that is shared, large or changes often (a course taken by thousands).</li></ul>
+   <pre>{ _id: 7001, projectName: "Payroll Upgrade", clientID: 3001 }
+db.projects.aggregate([{ $lookup: { from: "clients",
+  localField: "clientID", foreignField: "_id", as: "client" } }])</pre>`]
  ],
  ch:[
-  {type:'sort', q:'Match each SQL word to its MongoDB equivalent.', cats:['Collection','Document','Field','find()'],
+  {type:'mcq', q:'Which is the best description of a NoSQL database?', opts:['A relational database with no SQL support','A non-relational database that stores data as documents, key-value pairs, columns or graphs, with a flexible schema and horizontal scaling','A spreadsheet','A database that cannot be queried'], a:1,
+   why:'NoSQL means "not only SQL": non-relational models, flexible schemas, and scaling across many servers.'},
+  {type:'sort', q:'An online shop collects this data. Classify each item.', cats:['Structured','Semi-structured','Unstructured'],
+   items:[['Customer account rows (ID, name, email, purchase total)',0],['Product reviews with free-text comments and optional photos',2],['Website activity logs where entries have different attributes',1],['A product catalogue where phones list battery life and shirts list fabric',1],['Recorded lecture videos',2],['Student records with ID, name, email and programme',0],['Discussion posts with text, images and attachments',2]],
+   hint:'Fixed columns = structured. Keys or tags but varying fields = semi-structured. No model at all = unstructured.',
+   why:'Fixed tables are structured. Logs and catalogues have labelled fields that vary, so they are semi-structured. Free text, photos, videos and attachments have no predefined model, so they are unstructured.'},
+  {type:'sort', q:'Which NoSQL family fits each use case best?', cats:['Document','Key-value','Column-family','Graph'],
+   items:[['A catalogue where each product has different attributes',0],['Shopping carts and login sessions looked up by session ID',1],['Billions of sensor readings written every day',2],['Friend-of-a-friend recommendations',3],['Course information where each course type has different fields',0],['Detecting fraud rings of linked accounts',3]],
+   hint:'Nested varying records → document. Lookup by one key → key-value. Huge write volume → column. Connections → graph.',
+   why:'Documents hold varying nested records. Key-value stores are fastest for a lookup by key. Column-family stores handle huge write loads. Graphs are built for relationships between things.'},
+  {type:'mcq', q:'How do column-oriented NoSQL databases differ from document-oriented ones?',
+   opts:['They are identical','A column store groups values by column (fast for reading one attribute across many rows); a document store keeps each whole record together as a nested document (fast for reading one object, with fields that can vary)','A document store has no keys','A column store only holds images'], a:1,
+   why:'Cassandra and HBase organise data by column family for analytics and heavy writes. MongoDB keeps each object together as a JSON-like document.'},
+  {type:'mcq', q:'Which statement about NoSQL compared with an RDBMS is TRUE?',
+   opts:['NoSQL always enforces foreign keys','NoSQL usually scales horizontally across many servers and allows records with different fields','An RDBMS cannot store numbers','NoSQL needs every record to have the same columns'], a:1,
+   why:'Horizontal scaling and a flexible schema are NoSQL’s main strengths. An RDBMS has a fixed schema, enforced relationships and ACID transactions.'},
+  {type:'mcq', q:'An online learning company wants to move its discussion posts and varied course information to NoSQL, but keep student records and payments in its relational database. Is this appropriate?',
+   opts:['No, everything must stay relational','Yes: varied and unstructured data suits NoSQL’s flexible schema and scaling, while structured records and payments need the RDBMS’s fixed schema, integrity and ACID transactions','No, NoSQL can’t store text','Yes, and it should also delete the relational database'], a:1,
+   why:'Use each tool for what it does best. Flexible, fast-growing data goes to NoSQL. Structured data that needs integrity and transactions stays relational.'},
+  {type:'mcq', q:'How can you achieve a primary key–foreign key relationship in MongoDB?',
+   opts:['Declare FOREIGN KEY in the collection','Each document’s _id is its primary key; store another document’s _id as a field (a reference) and join with $lookup. MongoDB won’t enforce it.','MongoDB can’t relate documents','Copy every related document into one big document'], a:1,
+   why:'_id plays the PK role. A stored _id acts like an FK, and $lookup does the join. Referential integrity is left to the application.'},
+  {type:'mcq', q:'Why do NoSQL databases matter for big data and modern web applications?',
+   opts:['They are older than relational databases','They handle huge volume, high velocity and wide variety by scaling across servers and storing data without a fixed schema','They need less security','They only work offline'], a:1,
+   why:'Big data is high in volume, velocity and variety. Spreading load over many servers and accepting varied structures lets NoSQL keep up.'},
+  {type:'sort', q:'Match each SQL term to its MongoDB equivalent.', cats:['Collection','Document','Field','find()'],
    items:[['Table',0],['Row',1],['Column',2],['SELECT … WHERE',3]], why:'Table ↔ collection, row ↔ document, column ↔ field, SELECT/WHERE ↔ find(filter).'},
-  {type:'mongo', q:'Return every student document.', expect:'db.students.find({})', hint:'An empty filter {} matches everything.', why:'<code>find({})</code> is like <code>SELECT * FROM students</code>.'},
   {type:'mongo', q:'Find students whose major is "CS".', expect:'db.students.find({ major: "CS" })', hint:'{ field: value }', why:'Equality in Mongo is just { field: value }.'},
   {type:'mongo', q:'Find students with a GPA greater than 3.5.', expect:'db.students.find({ gpa: { $gt: 3.5 } })', hint:'{ gpa: { $gt: 3.5 } }', why:'Comparison operators go inside a nested object: <code>$gt</code> means greater than.'},
-  {type:'mongo', q:'Find students who live in the parish of Kingston. (parish is inside the embedded address object.)', expect:'db.students.find({ "address.parish": "Kingston" })', hint:'Use dot notation in quotes: "address.parish"', why:'Dot notation reaches into embedded documents. Put the path in quotes.'},
-  {type:'mongo', q:'Find students who have "SQL" in their skills array.', expect:'db.students.find({ skills: "SQL" })', hint:'Matching an array field against one value checks whether the array contains it.', why:'Mongo checks every element of the array, so { skills: "SQL" } means "skills contains SQL".'},
-  {type:'mongo', q:'Find students whose major is either "IT" or "SE".', expect:'db.students.find({ major: { $in: ["IT", "SE"] } })', hint:'$in takes an array', why:'<code>$in</code> is like SQL <code>IN (\'IT\',\'SE\')</code>.'},
-  {type:'mongo', q:'For year 2 students, show ONLY name and gpa (hide _id).', expect:'db.students.find({ year: 2 }, { name: 1, gpa: 1, _id: 0 })', hint:'Second argument is the projection. _id shows unless you set it to 0.', why:'The projection (2nd argument) chooses the fields, like the column list in SELECT.'},
-  {type:'mongo', order:true, q:'Show the top 3 students by GPA (highest first).', expect:'db.students.find({}).sort({ gpa: -1 }).limit(3)', hint:'.sort({ gpa: -1 }).limit(3)', why:'-1 sorts descending. limit(3) is like SQL LIMIT 3.'},
-  {type:'mongo', q:'Find students who have a GPA below 3.0 OR are in year 3.', expect:'db.students.find({ $or: [ { gpa: { $lt: 3 } }, { year: 3 } ] })', hint:'{ $or: [ {…}, {…} ] }', why:'<code>$or</code> takes an array of conditions. A document matches if any one of them is true.'},
-  {type:'mongo', q:'Find students who got an "A" in CMP2018 (inside the courses array).', expect:'db.students.find({ courses: { $elemMatch: { code: "CMP2018", grade: "A" } } })', hint:'$elemMatch makes both conditions apply to the SAME array element.', why:'<code>$elemMatch</code> requires one element to match every condition. Without it, code and grade could come from different courses.'},
-  {type:'mongo', write:true, q:'Insert a new student: _id 9, name "Ricky Barnes", major "SE", gpa 3.0, year 1.', expect:'db.students.insertOne({ _id: 9, name: "Ricky Barnes", major: "SE", gpa: 3.0, year: 1 })', hint:'db.students.insertOne({ … })', why:'insertOne adds a document. Unlike SQL, you didn’t have to include address or skills, because there is no fixed schema.'},
-  {type:'mongo', write:true, q:'Set Dwayne Reid’s (_id 5) gpa to 2.8.', expect:'db.students.updateOne({ _id: 5 }, { $set: { gpa: 2.8 } })', hint:'updateOne(filter, { $set: { … } })', why:'Without $set, the update would replace the whole document.'},
-  {type:'mcq', q:'Which Mongo query equals <code>SELECT name FROM students WHERE year = 1</code>?', html:true,
-   opts:['<code>db.students.find({name:1},{year:1})</code>','<code>db.students.find({year:1},{name:1})</code>','<code>db.students.select(name).where(year=1)</code>','<code>db.students.find(year==1).name</code>'], a:1,
-   why:'find(filter, projection): the filter is the WHERE, and the projection is the SELECT list.'},
+  {type:'mongo', q:'Find students who live in the parish of Kingston. (parish is inside the embedded address object.)', expect:'db.students.find({ "address.parish": "Kingston" })', hint:'Use dot notation in quotes: "address.parish"', why:'Dot notation reaches into embedded documents, which is how a document store keeps related data together.'},
+  {type:'mongo', write:true, q:'Insert a new student: _id 9, name "Ricky Barnes", major "SE". Leave out every other field.', expect:'db.students.insertOne({ _id: 9, name: "Ricky Barnes", major: "SE" })', hint:'db.students.insertOne({ … })', why:'This document has fewer fields than the others and MongoDB accepts it. That is the flexible schema in action; an RDBMS would need values (or NULLs) for every column.'},
   {type:'mcq', q:'Each course is taken by thousands of students and its details change often. Inside student documents, you should…', opts:['Embed full course details in every student','Reference courses by code/_id','Store courses as XML','Use one giant document'], a:1,
-   why:'Data that is shared, large or often updated should be referenced. Embedding it would duplicate it thousands of times, which is the same redundancy problem as in relational design.'}
+   why:'Shared, large or often-updated data should be referenced. Embedding it would copy it thousands of times, which is the same redundancy problem normalisation solves.'}
  ]},
-{ id:'json', name:'JSON Junction', blurb:'Syntax, data types, fixing & writing JSON', unit:'Unit 6',
+{ id:'json', name:'JSON Junction', blurb:'Paper Q5 / Q6: represent tables and records in JSON, with nested objects for composite attributes and arrays for multivalued ones.', unit:'Lecture 10',
  lessons:[
   ['JSON rules', `<ul><li>Objects <code>{ }</code> hold <b>"key": value</b> pairs. Keys must be in <b>double quotes</b>.</li>
    <li>Arrays <code>[ ]</code> hold ordered values.</li>
    <li>Types: string, number, true/false, null, object, array. There is <b>no date type</b> and no comments.</li>
-   <li><b>No trailing commas.</b> Use "double quotes" only.</li></ul>
-<pre>{
-  "code": "CMP2018",
-  "credits": 3,
-  "active": true,
-  "tags": ["database", "design"],
-  "lecturer": { "name": "Ms. Grant" }
-}</pre>`],
-  ['Reading JSON paths', `<pre>data.lecturer.name      → "Ms. Grant"
-data.tags[0]            → "database"
-data.courses[1].grade   → second course's grade</pre><p>Arrays count from <b>0</b>.</p>`],
-  ['When to use JSON', `<ul><li>Web APIs and JavaScript apps (it maps straight to JS objects).</li>
-   <li>Config files and document databases (MongoDB).</li><li>Lighter and easier to read than XML.</li>
-   <li>Weaker at mixed text and markup, and at strict schemas (XML/XSD is stronger there).</li></ul>`]
+   <li><b>No trailing commas.</b> Use "double quotes" only. Numbers have no quotes.</li></ul>`],
+  ['From a table to JSON', `<ul><li>Each row → one <b>object</b>; the whole table → an <b>array</b> of objects.</li>
+   <li><b>Composite</b> attribute (Name: First, Last) → a nested object.</li>
+   <li><b>Multivalued</b> attribute (Dependents, Genres) → an array.</li>
+   <li><b>Yes/No</b> → <code>true</code>/<code>false</code>. Amounts and counts → numbers.</li></ul>
+<pre>[
+  { "TRN": 10345,
+    "name": { "first": "Kerry-Ann", "last": "Mills" },
+    "dependents": ["Jaden Mills", "Zoe Mills"] }
+]</pre>`],
+  ['Grouping', `<p>Grouping by a field turns a list into an object keyed by each group value:</p>
+<pre>[{"name":"Kavi","dept":"IT"}, {"name":"Rhea","dept":"HR"}]
+→ { "IT": [ {"name":"Kavi","dept":"IT"} ],
+    "HR": [ {"name":"Rhea","dept":"HR"} ] }</pre>`],
+  ['Reading JSON and when to use it', `<pre>data.name.first        → "Kerry-Ann"
+data.dependents[0]     → "Jaden Mills"</pre><p>Arrays count from <b>0</b>.</p>
+   <ul><li>Use JSON for web APIs and JavaScript apps, config files and document databases (MongoDB).</li>
+   <li>It is lighter than XML and maps straight to JavaScript objects; XML is stronger for documents and strict schemas.</li></ul>`]
  ],
  ch:[
   {type:'mcq', q:'Which one is VALID JSON?', html:true, opts:['<code>{name: "Alex"}</code>','<code>{\'name\': \'Alex\'}</code>','<code>{"name": "Alex",}</code>','<code>{"name": "Alex"}</code>'], a:3,
    why:'Keys need double quotes, strings need double quotes, and trailing commas are not allowed.'},
   {type:'mcq', q:'Which is NOT a JSON data type?', opts:['string','boolean','date','null'], a:2,
    why:'JSON has no date type. Dates are stored as strings, for example "2026-11-10".'},
-  {type:'json', q:'Fix this broken JSON so it parses. Keep the same data.', start:`{name: 'Alex', "gpa": 3.4, "skills": ["SQL", "Python",], }`,
-   target:{name:'Alex',gpa:3.4,skills:['SQL','Python']}, hint:'Quote the key with double quotes, swap the single quotes, and remove both trailing commas.', why:'There were three problems: an unquoted key, single-quoted strings, and trailing commas.'},
-  {type:'json', q:'Write a JSON object for a course: code "CMP2018", title "Database Design", credits 3 (as a number).', start:'',
-   target:{code:'CMP2018',title:'Database Design',credits:3}, hint:'{ "code": "…", "title": "…", "credits": 3 }', why:'Numbers have no quotes. <code>"3"</code> would be a string.'},
-  {type:'json', q:'Write JSON for student "Alex" who has a courses array with 2 objects: CMP2018 grade "A", and CMP1024 grade "B+". Use keys name, courses, code, grade.', start:'',
-   target:{name:'Alex',courses:[{code:'CMP2018',grade:'A'},{code:'CMP1024',grade:'B+'}]}, hint:'"courses": [ {…}, {…} ]', why:'An array of objects is how JSON (and MongoDB) embeds a one-to-many relationship.'},
-  {type:'json', q:'Convert these table rows into a JSON array of objects (keys: id, fname, major).', sub:'<pre>id | fname   | major\n1  | Alex     | CS\n2  | Aaliyah | IT</pre>', html:true, start:'',
-   target:[{id:1,fname:'Alex',major:'CS'},{id:2,fname:'Aaliyah',major:'IT'}], hint:'[ { "id": 1, … }, { … } ]', why:'Each row becomes one object, and the whole table becomes an array. This is how data is exported to JSON.'},
-  {type:'mcq', q:'Given <code>data = {"name":"Alex","courses":[{"code":"CMP2018","grade":"A"},{"code":"CMP1024","grade":"B+"}]}</code>, what is <code>data.courses[1].grade</code>?', html:true,
-   opts:['"A"','"B+"','"CMP1024"','undefined'], a:1, why:'Arrays start at 0, so [1] is the second course, and its grade is "B+".'},
-  {type:'json', q:'Fix this JSON (it has two errors).', start:`{
-  "code": "CMP2018"
-  "lecturer": {"name": Ms. Grant}
-}`, target:{code:'CMP2018',lecturer:{name:'Ms. Grant'}}, hint:'A comma is missing between the pairs, and a string has no quotes.', why:'Every pair except the last needs a comma, and text values must be in double quotes.'},
+  {type:'json', q:'Fix this broken JSON so it parses. Keep the same data.', start:`{title: 'Data Modelling', "fee": 30000, "modes": ["Online", "Face-to-Face",], }`,
+   target:{title:'Data Modelling',fee:30000,modes:['Online','Face-to-Face']}, hint:'Quote the key with double quotes, swap the single quotes, and remove both trailing commas.', why:'There were three problems: an unquoted key, single-quoted strings, and trailing commas.'},
+  {type:'json', q:'Represent this table in JSON as an array of two objects. Use the keys <code>TRN</code> (a number), <code>name</code> (an object with <code>first</code> and <code>last</code>), <code>address</code>, and <code>dependents</code> (an array).', html:true,
+   sub:qtbl(['TRN','First','Last','Address','Dependents'],[['10345','Kerry-Ann','Mills','8 Lady Musgrave Rd, Kgn 10','Jaden Mills, Zoe Mills'],['22871','Omari','Dunn','14 Hagley Park Rd, Kgn 11','Nia Dunn']]), start:'',
+   target:[{TRN:10345,name:{first:'Kerry-Ann',last:'Mills'},address:'8 Lady Musgrave Rd, Kgn 10',dependents:['Jaden Mills','Zoe Mills']},{TRN:22871,name:{first:'Omari',last:'Dunn'},address:'14 Hagley Park Rd, Kgn 11',dependents:['Nia Dunn']}],
+   hint:'[ { "TRN": 10345, "name": { "first": …, "last": … }, "address": …, "dependents": [ … ] }, { … } ]',
+   why:'The composite Name becomes a nested object, and the multivalued Dependents becomes an array, even when there is only one dependent.'},
+  {type:'json', q:'Represent this book in JSON. Keys: <code>title</code>, <code>author</code>, <code>published</code> (number), <code>genres</code> (array), <code>available</code> (boolean), and <code>section</code> (an object with <code>name</code>, <code>shelf</code> and <code>position</code> as a number).', html:true,
+   sub:qtbl(['Title','Author','Published','Genres','Available','Library section'],[['The Lonely Londoners','Sam Selvon','1956','Classic, Fiction','Yes','Name: Literature<br>Shelf: L4<br>Position: 20']]), start:'',
+   target:{title:'The Lonely Londoners',author:'Sam Selvon',published:1956,genres:['Classic','Fiction'],available:true,section:{name:'Literature',shelf:'L4',position:20}},
+   hint:'"available": true, "genres": ["Classic", "Fiction"], "section": { "name": …, "shelf": …, "position": 20 }',
+   why:'Yes becomes true, the list of genres becomes an array, and the library section, which has parts, becomes a nested object.'},
+  {type:'json', q:'This list was grouped by department with <code>groupBy((emp) -> emp.dept)</code>. Write the grouped result: an object whose keys are the departments, in the order IT then HR, each holding an array of the employee objects.', html:true,
+   sub:'<pre>[\n  {"name": "Kavi", "dept": "IT"},\n  {"name": "Rhea", "dept": "HR"},\n  {"name": "Devon", "dept": "IT"}\n]</pre>', start:'',
+   target:{IT:[{name:'Kavi',dept:'IT'},{name:'Devon',dept:'IT'}],HR:[{name:'Rhea',dept:'HR'}]},
+   hint:'{ "IT": [ {…Kavi…}, {…Devon…} ], "HR": [ {…Rhea…} ] }', why:'Grouping makes one key per department. Each key holds an array of the matching objects, kept in their original order.'},
+  {type:'json', q:'Represent this course in JSON. Keys: <code>courseID</code>, <code>title</code>, <code>cost</code> (number), <code>hours</code> (number), <code>instructor</code> (an object with <code>id</code> and <code>name</code>), <code>deliveryModes</code> (array) and <code>award</code>.', html:true,
+   sub:'“Course CMP2018, <i>Database Design</i>, costs J$38,000 and runs for 40 hours. It is taught by Avery Thompson (instructor ID I207) and offered Face-to-Face and Online. Students who complete it receive a Certificate of Completion.”', start:'',
+   target:{courseID:'CMP2018',title:'Database Design',cost:38000,hours:40,instructor:{id:'I207',name:'Avery Thompson'},deliveryModes:['Face-to-Face','Online'],award:'Certificate of Completion'},
+   hint:'"cost": 38000 (no J$ or comma), "deliveryModes": ["Face-to-Face", "Online"]', why:'Amounts are plain numbers. The two delivery modes are a multivalued fact, so they go in an array.'},
+  {type:'mcq', q:'Given <code>p = {"name":{"first":"Kerry-Ann","last":"Mills"},"dependents":["Jaden Mills","Zoe Mills"]}</code>, what is <code>p.dependents[1]</code>?', html:true,
+   opts:['"Jaden Mills"','"Zoe Mills"','"Mills"','undefined'], a:1, why:'Arrays start at 0, so [1] is the second dependent.'},
   {type:'mcq', q:'Best reason to choose JSON over XML for a mobile app’s API?', opts:['JSON supports comments','JSON is lighter and maps directly to JavaScript objects','JSON has stronger schema validation','JSON allows mixed text and tags'], a:1,
    why:'JSON is compact and parses natively in JS. XML is stronger for documents and strict schemas.'}
  ]},
-{ id:'xml', name:'XML Cove', blurb:'Well-formed XML, elements vs attributes, trees', unit:'Unit 6',
+{ id:'xml', name:'XML Cove', blurb:'Paper Q5 / Q6: write well-formed XML for a record, a passage of text, grouped data and a full document with its declaration.', unit:'Lecture 10',
  lessons:[
-  ['XML rules (well-formed)', `<ul><li>Exactly <b>one root element</b>.</li><li>Every opening tag has a closing tag (or is self-closing <code>&lt;br/&gt;</code>).</li>
-   <li>Tags are <b>case-sensitive</b>: <code>&lt;Name&gt;…&lt;/name&gt;</code> is wrong.</li>
-   <li>Tags must nest properly, with no overlapping.</li><li>Attribute values go in quotes.</li></ul>
-<pre>&lt;?xml version="1.0"?&gt;
-&lt;course code="CMP2018"&gt;
+  ['Well-formed XML', `<ul><li>Start with the <b>XML declaration</b>: <code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;</code></li>
+   <li>Exactly <b>one root element</b> wraps everything.</li><li>Every opening tag has a closing tag (or is self-closing <code>&lt;br/&gt;</code>).</li>
+   <li>Tags are <b>case-sensitive</b> and must nest properly, with no overlapping.</li><li>Attribute values go in quotes.</li></ul>
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;course id="CMP2018"&gt;
   &lt;title&gt;Database Design&lt;/title&gt;
-  &lt;credits&gt;3&lt;/credits&gt;
+  &lt;hours&gt;40&lt;/hours&gt;
 &lt;/course&gt;</pre>`],
-  ['Elements vs attributes', `<p><b>Attributes</b> (code="CMP2018") suit simple metadata such as IDs. <b>Elements</b> suit data that can repeat or have structure.</p>
-   <p>Arrays become repeated elements:</p>
-<pre>&lt;skills&gt;
-  &lt;skill&gt;SQL&lt;/skill&gt;
-  &lt;skill&gt;Python&lt;/skill&gt;
-&lt;/skills&gt;</pre>`],
-  ['Valid vs well-formed, XPath', `<ul><li><b>Well-formed</b> = follows the syntax rules.</li><li><b>Valid</b> = well-formed <i>and</i> follows a DTD or XSD schema.</li>
-   <li>Special characters: <code>&amp;lt;</code> for &lt; and <code>&amp;amp;</code> for &amp;.</li>
-   <li><b>XPath</b> navigates the tree: <code>/university/student[gpa&gt;3.5]/name</code></li></ul>`],
-  ['XML & the hierarchical / network models', `<p>XML is a <b>tree</b>: every element has one parent, which is exactly the <b>hierarchical model</b> (parent/child). The <b>network model</b> allows many parents, forming a graph with owner/member sets.</p>
-   <p>Use XML for data exchange between systems, documents, config, SOAP, and import/export where a schema must be enforced.</p>`]
+  ['Elements, attributes and lists', `<p><b>Attributes</b> suit simple identifiers (<code>id="I207"</code>). <b>Elements</b> suit data that can repeat or has parts. Composite data becomes nested elements; a list becomes repeated child elements:</p>
+<pre>&lt;genres&gt;
+  &lt;genre&gt;Classic&lt;/genre&gt;
+  &lt;genre&gt;Fiction&lt;/genre&gt;
+&lt;/genres&gt;
+&lt;section&gt;&lt;name&gt;Literature&lt;/name&gt;&lt;shelf&gt;L4&lt;/shelf&gt;&lt;/section&gt;</pre>
+   <p>Grouped data nests the members inside each group:</p>
+<pre>&lt;department name="IT"&gt;
+  &lt;employee&gt;Kavi&lt;/employee&gt;
+&lt;/department&gt;</pre>`],
+  ['Valid vs well-formed, special characters', `<ul><li><b>Well-formed</b> = follows the syntax rules.</li><li><b>Valid</b> = well-formed <i>and</i> follows a DTD or XSD schema.</li>
+   <li>Escape special characters: <code>&amp;lt;</code> for &lt; and <code>&amp;amp;</code> for &amp;.</li>
+   <li>Use XML to exchange data between organisations, where a schema must be enforced, and for documents.</li></ul>`],
+  ['XML and the older data models', `<p>XML is a <b>tree</b>: each element has one parent, like the <b>hierarchical model</b> (parent/child). The <b>network model</b> lets a record have many parents through owner/member <b>sets</b>, forming a graph.</p>`]
  ],
  ch:[
   {type:'mcq', q:'Which XML is well-formed?', html:true,
    opts:['<code>&lt;name&gt;Alex&lt;/Name&gt;</code>','<code>&lt;a&gt;&lt;b&gt;hi&lt;/a&gt;&lt;/b&gt;</code>','<code>&lt;s&gt;&lt;name&gt;Alex&lt;/name&gt;&lt;/s&gt;</code>','<code>&lt;x&gt;1&lt;/x&gt;&lt;y&gt;2&lt;/y&gt;</code>'], a:2,
    why:'The others have a case mismatch, overlapping tags, or two root elements.'},
-  {type:'xml', q:'Write XML for a course with an attribute code="CMP2018" and child elements title (Database Design) and credits (3). The root element is <code>course</code>.', html:true, start:'',
-   check:'course', hint:'<course code="CMP2018"> <title>…</title> <credits>…</credits> </course>', why:'The ID went in an attribute, and the descriptive data went in child elements.'},
-  {type:'xml', q:'Fix this XML so it is well-formed.', start:`<student>
-  <name>Alex</Name>
-  <gpa>3.4
-</student>`, check:'fix1', hint:'Tags are case-sensitive, and every tag must close.', why:'&lt;/Name&gt; did not match &lt;name&gt;, and &lt;gpa&gt; was never closed.'},
-  {type:'xml', q:'Convert this JSON to XML (root element <code>student</code>, with each skill as a <code>skill</code> element inside <code>skills</code>):', html:true, sub:'<pre>{"student": {"id": 1, "name": "Alex", "skills": ["SQL","Python"]}}</pre>',
-   start:'', check:'conv', hint:'<student><id>1</id><name>Alex</name><skills><skill>SQL</skill>…</skills></student>', why:'JSON arrays become repeated child elements in XML.'},
+  {type:'xml', q:'Fix this XML so it is well-formed.', start:`<workshop>
+  <title>Data Modelling</Title>
+  <fee>30000
+</workshop>`, check:'fix1', hint:'Tags are case-sensitive, and every tag must close.', why:'&lt;/Title&gt; did not match &lt;title&gt;, and &lt;fee&gt; was never closed.'},
+  {type:'xml', q:'Represent this Bible passage in XML. Include the book, chapter, and a separate <code>verse</code> element for each verse, with its number.', html:true,
+   sub:'Psalm 25:4–5 (KJV). <b>4</b> Shew me thy ways, O LORD; teach me thy paths. <b>5</b> Lead me in thy truth, and teach me: for thou art the God of my salvation; on thee do I wait all the day.', start:'',
+   check:'verse', hint:'<passage><book>Psalms</book><chapter>25</chapter><verse number="4">…</verse><verse number="5">…</verse></passage>',
+   why:'The reference (book, chapter, verse numbers) becomes elements or attributes, and each verse’s text sits in its own element.'},
+  {type:'xml', q:'Represent this library book in XML. Use nested elements for the genres and for the library section.', html:true,
+   sub:qtbl(['Title','Author','Published','Genres','Available','Library section'],[['The Lonely Londoners','Sam Selvon','1956','Classic, Fiction','Yes','Name: Literature<br>Shelf: L4<br>Position: 20']]), start:'',
+   check:'book', hint:'<book><title>…</title>…<genres><genre>Classic</genre><genre>Fiction</genre></genres><section><name>…</name><shelf>…</shelf><position>…</position></section></book>',
+   why:'Each column becomes an element. The genre list becomes repeated &lt;genre&gt; elements, and the section’s parts nest inside &lt;section&gt;.'},
+  {type:'xml', q:'Employees were grouped by department: IT has Kavi and Devon; HR has Rhea. Represent the grouped result in XML.', html:true,
+   start:'', check:'group', hint:'<departments><department name="IT"><employee>Kavi</employee><employee>Devon</employee></department><department name="HR">…</department></departments>',
+   why:'One root holds a department element per group, and each department nests its own employees.'},
+  {type:'xml', q:'Write a well-formed XML document for this course. Include the XML declaration and one root element, and represent both delivery modes.', html:true,
+   sub:'“Course CMP2018, <i>Database Design</i>, costs J$38,000 and runs for 40 hours. It is taught by Avery Thompson (instructor ID I207) and offered Face-to-Face and Online. Students who complete it receive a Certificate of Completion.”', start:'',
+   check:'course', hint:'<?xml version="1.0" encoding="UTF-8"?> then <course id="CMP2018"> … <deliveryModes><mode>Face-to-Face</mode><mode>Online</mode></deliveryModes> … </course>',
+   why:'The declaration comes first, a single root wraps the course, the instructor nests its id and name, and the two modes are repeated elements.'},
   {type:'mcq', q:'What is the difference between “valid” and “well-formed” XML?', opts:['They mean the same','Valid = well-formed AND follows a DTD/XSD schema','Well-formed = has a schema','Valid = has no attributes'], a:1,
    why:'All valid XML is well-formed, but well-formed XML is only valid if it matches its schema.'},
   {type:'mcq', q:'How do you write <code>Marks &lt; 50 &amp; failed</code> inside an XML element?', html:true,
    opts:['<code>Marks < 50 & failed</code>','<code>Marks &amp;lt; 50 &amp;amp; failed</code>','<code>Marks \\< 50 \\& failed</code>','<code>&lt;![Marks]&gt;</code>'], a:1,
    why:'&lt; and &amp; are reserved, so escape them as &amp;lt; and &amp;amp; (or wrap the text in a CDATA section).'},
-  {type:'mcq', q:'What does the XPath <code>/university/student[gpa&gt;3.5]/name</code> select?', html:true,
-   opts:['All GPAs','Names of students with GPA above 3.5','The university name','Students named gpa'], a:1,
-   why:'It walks the tree: university → each student whose gpa > 3.5 → that student’s name.'},
+  {type:'mcq', q:'Which is a strong reason to exchange data with partner universities as XML?', opts:['It is smaller than JSON','The partners can validate it against a shared schema (XSD), and XML handles document-style data well','JavaScript reads it natively','It has no closing tags'], a:1,
+   why:'XML with an XSD gives strict validation between organisations, and it is widely used in enterprise and government exchange.'},
   {type:'mcq', q:'An XML document is a tree with one root, and each element has exactly one parent. Which older database model does this match?', opts:['Network model','Hierarchical model','Relational model','Object model'], a:1,
-   why:'The hierarchical model is a tree of parent/child records. The network model allows multiple parents (owner/member sets) and forms a graph.'},
-  {type:'mcq', q:'In the NETWORK model, a “set” consists of…', opts:['A parent and child in a tree','An owner record type and member record types','A table and its rows','A JSON array'], a:1,
-   why:'A network-model set links one owner record type to many member records. Records can belong to several sets, which makes the structure a graph.'},
-  {type:'mcq', q:'Which is a strong reason to export data as XML instead of JSON?', opts:['It is smaller','The receiving system requires strict schema validation (XSD) and document-style data','JavaScript reads it natively','It has no closing tags'], a:1,
-   why:'XML with XSD gives strict validation, namespaces and document markup. Many government, banking and enterprise systems require it.'}
+   why:'The hierarchical model is a tree of parent/child records. The network model allows many parents (owner/member sets), forming a graph.'}
  ]}
 ];
 
-/* XML checkers */
+/* XML checkers: lenient about naming (elements or attributes, any case) but strict about the data */
+const xlow=s=>String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,' ');
+const xnum=s=>xlow(s).replace(/^j\$|^\$|,/g,'');
+function xEls(d,names){names=names.map(n=>n.toLowerCase());return [...d.getElementsByTagName('*')].filter(e=>names.includes(e.localName.toLowerCase()));}
+function xVals(d,names){const out=[];names=names.map(n=>n.toLowerCase());
+  [...d.getElementsByTagName('*')].forEach(e=>{if(names.includes(e.localName.toLowerCase())&&!e.children.length)out.push(e.textContent);
+    [...e.attributes].forEach(a=>{if(names.includes(a.name.toLowerCase()))out.push(a.value);});});return out;}
+function xHas(d,names,val,num){return xVals(d,names).some(v=>num?xnum(v)===xnum(val):xlow(v)===xlow(val));}
 function xText(doc,sel){const e=doc.querySelector(sel);return e?e.textContent.trim():null;}
+function xAllText(d){return xlow(d.documentElement.textContent+' '+[...d.getElementsByTagName('*')].flatMap(e=>[...e.attributes].map(a=>a.value)).join(' '));}
 const XML_CHECKS={
-  course(d){const r=d.documentElement; if(r.nodeName!=='course')return 'The root element should be <course>.';
-    if(r.getAttribute('code')!=='CMP2018')return 'The <course> element needs the attribute code="CMP2018".';
-    if(xText(d,'course > title')!=='Database Design')return '<title> should contain: Database Design';
-    if(xText(d,'course > credits')!=='3')return '<credits> should contain: 3'; return '';},
-  fix1(d){const r=d.documentElement; if(r.nodeName!=='student')return 'Keep <student> as the root.';
-    if(xText(d,'student > name')!=='Alex')return '<name> should still contain Alex.';
-    if(xText(d,'student > gpa')!=='3.4')return '<gpa> should still contain 3.4.'; return '';},
-  conv(d){const r=d.documentElement; if(r.nodeName!=='student')return 'The root element should be <student>.';
-    if(xText(d,'student > id')!=='1')return 'Need <id>1</id> inside <student>.';
-    if(xText(d,'student > name')!=='Alex')return 'Need <name>Alex</name>.';
-    const sk=[...d.querySelectorAll('student > skills > skill')].map(e=>e.textContent.trim());
-    if(sk.length!==2||sk[0]!=='SQL'||sk[1]!=='Python')return 'Need <skills> containing two <skill> elements: SQL and Python.'; return '';}
+  fix1(d){const r=d.documentElement; if(r.nodeName!=='workshop')return 'Keep <workshop> as the root.';
+    if(xText(d,'workshop > title')!=='Data Modelling')return '<title> should still contain Data Modelling.';
+    if(xText(d,'workshop > fee')!=='30000')return '<fee> should still contain 30000.'; return '';},
+  verse(d){const t=xAllText(d);
+    if(!/psalm/.test(t))return 'Include the book (Psalm or Psalms).';
+    if(!xHas(d,['chapter'],'25',true))return 'Include the chapter, 25, in a chapter element or attribute.';
+    const vs=xEls(d,['verse']); if(vs.length<2)return 'Use a separate <verse> element for each of the two verses.';
+    const vt=xlow(vs.map(v=>v.textContent).join(' '));
+    if(!vt.includes('shew me thy ways')||!vt.includes('lead me in thy truth'))return 'Each verse element should hold that verse’s text.';
+    const nums=vs.flatMap(v=>[...v.attributes].map(a=>a.value).concat([...v.children].map(c=>c.textContent))).map(xnum);
+    if(!nums.includes('4')||!nums.includes('5'))return 'Give each verse its number (4 and 5), as an attribute or a child element.'; return '';},
+  book(d){const need=[[['title'],'The Lonely Londoners'],[['author'],'Sam Selvon'],[['published','year','publishedyear'],'1956',1],[['available'],null],[['name','sectionname'],'Literature'],[['shelf'],'L4'],[['position'],'20',1]];
+    for(const [n,v,num] of need){if(v===null){const a=xVals(d,n).map(xlow);if(!a.some(x=>['yes','true'].includes(x)))return 'Include available as Yes or true.';continue;}
+      if(!xHas(d,n,v,num))return `Include ${n[0]}: ${v}.`;}
+    const g=xEls(d,['genre']).map(e=>xlow(e.textContent)); if(!(g.includes('classic')&&g.includes('fiction')))return 'Use a separate <genre> element for Classic and for Fiction.';
+    if(!xEls(d,['section','librarysection','location']).length)return 'Nest the name, shelf and position inside a <section> element.'; return '';},
+  group(d){const groupFor=dept=>[...d.getElementsByTagName('*')].filter(e=>e!==d.documentElement&&([...e.attributes].some(a=>xlow(a.value)===dept)||[...e.children].some(c=>!c.children.length&&xlow(c.textContent)===dept&&/name|dept|department/i.test(c.localName))||xlow(e.localName)===dept));
+    const ok=(dept,inn,out)=>groupFor(dept).some(e=>{const t=xlow(e.textContent);return inn.every(n=>t.includes(n))&&out.every(n=>!t.includes(n));});
+    if(!ok('it',['kavi','devon'],['rhea']))return 'Make an IT group element that contains Kavi and Devon (and not Rhea).';
+    if(!ok('hr',['rhea'],['kavi','devon']))return 'Make an HR group element that contains Rhea only.'; return '';},
+  course(d,src){if(!/^\s*<\?xml\s+version=/.test(src))return 'Start with the XML declaration: <?xml version="1.0" encoding="UTF-8"?>';
+    const need=[[['courseid','id','code'],'CMP2018'],[['title','name','coursetitle'],'Database Design'],[['cost','price','fee'],'38000',1],[['hours','duration'],'40',1],[['name','instructorname','instructor'],'Avery Thompson'],[['id','instructorid'],'I207'],[['award','certificate'],'Certificate of Completion']];
+    for(const [n,v,num] of need)if(!xHas(d,n,v,num))return `Include ${v} (as a ${n[0]} element or attribute).`;
+    const t=xAllText(d); if(!xEls(d,['instructor']).length)return 'Group the instructor’s id and name inside an <instructor> element.';
+    const modes=[...d.getElementsByTagName('*')].filter(e=>!e.children.length).map(e=>xlow(e.textContent));
+    if(!modes.includes('face-to-face')||!modes.includes('online'))return 'Put Face-to-Face and Online in separate elements (for example two <mode> elements).'; return '';}
 };
+
+/* =====================================================================
+   RELATIONAL ALGEBRA ENGINE: parses π σ ρ ⋈ × ∪ ∩ − ← and runs them as SQL
+   ===================================================================== */
+function raTokens(src){
+  const T=[];let i=0;const s=src.replace(/[{}]/g,' ');
+  const sym={'π':'PI','∏':'PI','Π':'PI','σ':'SIGMA','ρ':'RHO','⋈':'JOIN','⨝':'JOIN','×':'TIMES','∪':'UNION','∩':'INTER','−':'MINUS','–':'MINUS','-':'MINUS','←':'ASSIGN','∧':'AND','∨':'OR','¬':'NOT','(':'(',')':')',',':','};
+  while(i<s.length){const c=s[i];
+    if(/\s/.test(c)){i++;continue;}
+    if(s.startsWith('<-',i)||s.startsWith(':=',i)){T.push({t:'ASSIGN'});i+=2;continue;}
+    if(s.startsWith('|><|',i)){T.push({t:'JOIN'});i+=4;continue;}
+    const two=s.slice(i,i+2);
+    if(['<>','!=','>=','<='].includes(two)){T.push({t:'CMP',v:{'<>':'<>','!=':'<>','>=':'>=','<=':'<='}[two]});i+=2;continue;}
+    if('=<>≠≥≤'.includes(c)){T.push({t:'CMP',v:{'≠':'<>','≥':'>=','≤':'<='}[c]||c});i++;continue;}
+    if(sym[c]){T.push({t:sym[c]});i++;if(/^(PI|SIGMA|RHO|JOIN)$/.test(sym[c])&&s[i]==='_')i++;continue;}
+    if(`'"‘’“”`.includes(c)){const close={"'":"'",'"':'"','‘':'’','’':'’','“':'”','”':'”'}[c];let j=i+1;while(j<s.length&&s[j]!==close&&!(close==="’"&&s[j]==="'")&&!(close==='”'&&s[j]==='"'))j++;
+      if(j>=s.length)throw new Error('A text value is missing its closing quote.');T.push({t:'STR',v:s.slice(i+1,j)});i=j+1;continue;}
+    const n=/^\$?\d[\d,]*(\.\d+)?/.exec(s.slice(i));if(n){T.push({t:'NUM',v:n[0].replace(/[$,]/g,'')});i+=n[0].length;continue;}
+    const id=/^[A-Za-z_#][\w#]*(\.[A-Za-z_#][\w#]*)?/.exec(s.slice(i));
+    if(id){const w=id[0],lw=w.toLowerCase();
+      const kw={and:'AND',or:'OR',not:'NOT',pi:'PI',sigma:'SIGMA',rho:'RHO',join:'JOIN',union:'UNION',intersect:'INTER',minus:'MINUS',x:'TIMES'};
+      T.push(kw[lw]&&!(lw==='x'&&!(T.length&&/^(IDENT|\))$/.test(T[T.length-1].t)))?{t:kw[lw]}:{t:'IDENT',v:w});i+=w.length;continue;}
+    throw new Error(`I don’t recognise “${c}”. Use the symbol keys below the editor.`);}
+  return T;
+}
+function raParse(T){
+  let p=0;const pk=(o=0)=>T[p+o]||{t:'END'};const take=t=>{if(pk().t!==t)throw new Error(raExpect(t,pk()));return T[p++];};
+  const isStart=x=>['IDENT','(','PI','SIGMA','RHO'].includes(x.t);
+  function expr(){let l=inter();while(pk().t==='UNION'||pk().t==='MINUS'){const op=T[p++].t;l={op:op==='UNION'?'union':'minus',l,r:inter()};}return l;}
+  function inter(){let l=join();while(pk().t==='INTER'){p++;l={op:'inter',l,r:join()};}return l;}
+  function join(){let l=unary();for(;;){if(pk().t==='JOIN'){p++;
+      if(pk().t==='IDENT'&&pk(1).t==='CMP'){const c=cond();l={op:'theta',cond:c,l,r:unary()};}else l={op:'njoin',l,r:unary()};}
+    else if(pk().t==='TIMES'){p++;l={op:'times',l,r:unary()};}else break;}return l;}
+  function attrs(){const a=[take('IDENT').v];while(pk().t===','){p++;a.push(take('IDENT').v);}return a;}
+  function unary(){const t=pk();
+    if(t.t==='PI'){p++;if(pk().t!=='IDENT')throw new Error('After π, list the attributes to keep, e.g. π title, fee (Workshop).');const a=attrs();return {op:'pi',attrs:a,rel:unary()};}
+    if(t.t==='SIGMA'){p++;const c=cond();return {op:'sigma',cond:c,rel:unary()};}
+    if(t.t==='RHO'){p++;const name=take('IDENT').v;let as=null;
+      if(pk().t==='('){let j=p+1,ok=pk(1).t==='IDENT';while(ok&&T[j]&&T[j].t!==')'){if(!['IDENT',','].includes(T[j].t))ok=false;j++;}
+        if(ok&&T[j]&&T[j+1]&&isStart(T[j+1])){p++;as=attrs();take(')');}}
+      return {op:'rho',name,as,rel:unary()};}
+    if(t.t==='('){p++;const e=expr();take(')');return e;}
+    if(t.t==='IDENT'){p++;return {op:'rel',name:t.v};}
+    throw new Error(raExpect('relation',t));}
+  function cond(){let l=cAnd();while(pk().t==='OR'){p++;l={op:'or',l,r:cAnd()};}return l;}
+  function cAnd(){let l=cNot();while(pk().t==='AND'){p++;l={op:'and',l,r:cNot()};}return l;}
+  function cNot(){if(pk().t==='NOT'){p++;return {op:'not',c:cNot()};}
+    if(pk().t==='('){p++;const c=cond();take(')');return c;}
+    const a=operand();const o=pk();if(o.t!=='CMP')throw new Error(`In the σ condition, expected a comparison (=, ≠, >, <, ≥, ≤) after “${a.v}”.`);p++;return {op:'cmp',cmp:o.v,a,b:operand()};}
+  function operand(){const t=pk();if(['IDENT','NUM','STR'].includes(t.t)){p++;return t;}throw new Error(raExpect('a value in the condition',t));}
+  const e=expr();if(pk().t!=='END')throw new Error(raExpect('end',pk()));return e;
+}
+function raExpect(want,got){const show=got.t==='END'?'the end':got.v!=null?`“${got.v}”`:`“${{PI:'π',SIGMA:'σ',RHO:'ρ',JOIN:'⋈',TIMES:'×',UNION:'∪',INTER:'∩',MINUS:'−',ASSIGN:'←',AND:'∧',OR:'∨',NOT:'¬'}[got.t]||got.t}”`;
+  if(want==='end')return `Unexpected ${show}. Check your brackets: π and σ need their relation in ( ).`;
+  if(want===')')return `A closing bracket “)” is missing before ${show}.`;
+  if(want==='relation')return `Expected a relation name, π, σ or “(” but found ${show}.`;
+  return `Expected ${want} but found ${show}.`;}
+function raRun(db,src){
+  let n=0;const fresh=()=>'c'+(n++);const env={};
+  const tables=db.exec("SELECT name FROM sqlite_master WHERE type IN ('table','view')")[0].values.map(r=>r[0]);
+  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+  function inst(rel){const cols=rel.cols.map(c=>({...c,id:fresh()}));return {sql:`SELECT ${rel.cols.map((c,i)=>`${c.id} AS ${cols[i].id}`).join(', ')} FROM (${rel.sql})`,cols};}
+  function resolve(R,ref){const k=ref.toLowerCase().split('.'),nm=k.pop(),ql=k[0];
+    const hits=R.cols.filter(c=>c.name.toLowerCase()===nm&&(!ql||c.quals.includes(ql)));
+    if(!hits.length){const avail=[...new Set(R.cols.map(c=>c.name))].join(', ');throw new Error(`There’s no attribute “${ref}” here. Available: ${avail}. If it lives in another relation, join it first. σ and π only see the relation straight after them, so bracket a join or product: σ … (A ⋈ B).`);}
+    if(hits.length>1)throw new Error(`“${ref}” is ambiguous here. Qualify it, e.g. ${hits[0].quals[0]||'R'}.${nm}.`);return hits[0].id;}
+  function cnd(R,c){if(c.op==='and')return `(${cnd(R,c.l)} AND ${cnd(R,c.r)})`;if(c.op==='or')return `(${cnd(R,c.l)} OR ${cnd(R,c.r)})`;if(c.op==='not')return `(NOT ${cnd(R,c.c)})`;
+    const v=o=>o.t==='IDENT'?resolve(R,o.v):o.t==='NUM'?o.v:`'${o.v.replace(/'/g,"''")}'`;const str=c.a.t==='STR'||c.b.t==='STR';
+    return `(${v(c.a)} ${c.cmp} ${v(c.b)}${str?' COLLATE NOCASE':''})`;}
+  function ev(e){switch(e.op){
+    case 'rel':{const k=e.name.toLowerCase();if(env[k])return inst(env[k]);
+      const t=tables.find(x=>x.toLowerCase()===k);if(!t)throw new Error(`There’s no relation called “${e.name}”. Tap Tables to see the names.`);
+      const info=db.exec(`SELECT name FROM pragma_table_info(${q(t)})`)[0].values.map(r=>r[0]);const cols=info.map(c=>({name:c,quals:[k],id:fresh()}));
+      return {sql:`SELECT ${info.map((c,i)=>`${q(c)} AS ${cols[i].id}`).join(', ')} FROM ${q(t)}`,cols};}
+    case 'sigma':{const R=ev(e.rel);return {sql:`SELECT * FROM (${R.sql}) WHERE ${cnd(R,e.cond)}`,cols:R.cols};}
+    case 'pi':{const R=ev(e.rel);const ids=[...new Set(e.attrs.map(a=>resolve(R,a)))];return {sql:`SELECT DISTINCT ${ids.join(', ')} FROM (${R.sql})`,cols:ids.map(id=>R.cols.find(c=>c.id===id))};}
+    case 'rho':{const R=ev(e.rel);if(e.as&&e.as.length!==R.cols.length)throw new Error(`ρ ${e.name}(…) lists ${e.as.length} names but the relation has ${R.cols.length} attributes.`);
+      return {sql:R.sql,cols:R.cols.map((c,i)=>({...c,name:e.as?e.as[i]:c.name,quals:[e.name.toLowerCase()]}))};}
+    case 'times':{const L=ev(e.l),R=ev(e.r);return {sql:`SELECT * FROM (${L.sql}), (${R.sql})`,cols:L.cols.concat(R.cols)};}
+    case 'theta':{const L=ev(e.l),R=ev(e.r);const C={cols:L.cols.concat(R.cols)};return {sql:`SELECT * FROM (${L.sql}), (${R.sql}) WHERE ${cnd(C,e.cond)}`,cols:C.cols};}
+    case 'njoin':{const L=ev(e.l),R=ev(e.r);const ln=L.cols.map(c=>c.name.toLowerCase());const common=[...new Set(R.cols.map(c=>c.name.toLowerCase()).filter(x=>ln.includes(x)))];
+      const on=common.map(nm=>`${L.cols.find(c=>c.name.toLowerCase()===nm).id} = ${R.cols.find(c=>c.name.toLowerCase()===nm).id}`);
+      const keep=R.cols.filter(c=>!common.includes(c.name.toLowerCase()));
+      const cols=L.cols.map(c=>common.includes(c.name.toLowerCase())?{...c,quals:[...new Set(c.quals.concat(R.cols.find(r=>r.name.toLowerCase()===c.name.toLowerCase()).quals))]}:c).concat(keep);
+      return {sql:`SELECT ${cols.map(c=>c.id).join(', ')} FROM (${L.sql}), (${R.sql})${on.length?' WHERE '+on.join(' AND '):''}`,cols};}
+    case 'union':case 'inter':case 'minus':{const L=ev(e.l),R=ev(e.r);const sym={union:'∪',inter:'∩',minus:'−'}[e.op];
+      if(L.cols.length!==R.cols.length)throw new Error(`${sym} needs union-compatible relations: the left side has ${L.cols.length} attribute(s), the right has ${R.cols.length}.`);
+      return {sql:`SELECT * FROM (${L.sql}) ${{union:'UNION',inter:'INTERSECT',minus:'EXCEPT'}[e.op]} SELECT * FROM (${R.sql})`,cols:L.cols};}}}
+  const lines=src.split(/\n|;/).map(x=>x.trim()).filter(Boolean);const stmts=[];
+  const bal=x=>(x.match(/\(/g)||[]).length-(x.match(/\)/g)||[]).length;
+  lines.forEach(l=>{const prev=stmts[stmts.length-1];
+    const cont=prev!=null&&!/←|<-|:=/.test(l)&&(bal(prev)>0||/^(∪|∩|−|–|-|⋈|×|∧|∨|\(|union|intersect|minus|join|and|or)/i.test(l)||/(∪|∩|−|–|-|⋈|×|∧|∨|←|<-|:=|,|σ|π|ρ)$/.test(prev));
+    if(cont)stmts[stmts.length-1]+=' '+l;else stmts.push(l);});
+  if(!stmts.length)throw new Error('Type an expression first.');
+  let last=null;
+  for(const st of stmts){const T=raTokens(st);
+    if(T.length>1&&T[0].t==='IDENT'&&T[1].t==='ASSIGN'){const R=ev(raParse(T.slice(2)));env[T[0].v.toLowerCase()]={sql:R.sql,cols:R.cols.map(c=>({...c,quals:[T[0].v.toLowerCase()]}))};last=T[0].v;}
+    else{if(T.some(t=>t.t==='ASSIGN'))throw new Error('Assignment is written Name ← expression, on its own line.');last=ev(raParse(T));}}
+  const R=typeof last==='string'?inst(env[last.toLowerCase()]):last;
+  const r=db.exec(`SELECT ${R.cols.map(c=>`${c.id} AS ${q(c.name)}`).join(', ')} FROM (${R.sql})`);
+  return r.length?r[0]:{columns:R.cols.map(c=>c.name),values:[]};
+}
+/* compare an RA result with the target: same attributes (any order) and the same set of tuples */
+function raSame(u,ex){if(u.columns.length!==ex.columns.length)return {ok:false,msg:`You returned ${u.columns.length} attribute(s); the target has ${ex.columns.length}.`};
+  const un=u.columns.map(c=>c.toLowerCase()),en=ex.columns.map(c=>c.toLowerCase());
+  let idx=en.map(c=>un.indexOf(c));if(idx.some(i=>i<0)||new Set(idx).size!==idx.length)idx=en.map((_,i)=>i);
+  const key=(rows,ix)=>[...new Set(rows.map(r=>JSON.stringify(ix.map(i=>normVal(r[i])))))].sort().join('\n');
+  const ok=key(u.values,idx)===key(ex.values,en.map((_,i)=>i));
+  return {ok,msg:ok?'':(new Set(u.values.map(r=>JSON.stringify(r))).size!==ex.values.length?`You returned ${u.values.length} tuple(s); the target has ${ex.values.length}.`:'The tuples don’t match the target yet.')};}
+function sqlTry(db,s){try{db.run(s);return true;}catch(e){return false;}}
+function sqlCount(db,s){try{const r=db.exec(s);return r.length?r[0].values[0][0]:0;}catch(e){return 0;}}
 
 /* =====================================================================
    STATE
@@ -971,6 +1494,10 @@ const XML_CHECKS={
 let S={stars:{},xp:0,streak:0,best:0,bossBest:0};
 try{const s=JSON.parse(localStorage.getItem('datayard_v1')||'null'); if(s) S=Object.assign(S,s);}catch(e){}
 function save(){try{localStorage.setItem('datayard_v1',JSON.stringify(S));}catch(e){}}
+/* Content version 2 = exercises rebuilt around the CMP2018 past papers. Old marks point at old exercises, so reset them (XP and theme are kept). */
+const CONTENT_V=2; let CONTENT_NOTE='';
+if(S.cv!==CONTENT_V){ if(Object.keys(S.stars||{}).length||S.bossBest){CONTENT_NOTE='The campus now follows the CMP2018 past papers. Your marks were reset; your XP was kept.';}
+  S.stars={}; S.bossBest=0; delete S.last; S.cv=CONTENT_V; save(); }
 WORLDS.forEach(w=>w.ch.forEach((c,i)=>{c.id=w.id+'-'+i;c.world=w.id;c.idx=i;}));
 const ALL=WORLDS.flatMap(w=>w.ch);
 const worldById=id=>WORLDS.find(w=>w.id===id);
@@ -1100,12 +1627,12 @@ function runMongo(src,colls){
 const APP_NAME='Normal Form';
 const TAGLINE='A campus for database design.';
 const HALLS={
-  er:   {hall:'Chen Hall',            short:'Chen',        topic:'Entities, relationships, diagrams'},
-  rel:  {hall:'Codd Hall',            short:'Codd',        topic:'Relations, keys, normal forms, algebra'},
-  sql:  {hall:'Boyce Laboratory',     short:'Boyce Lab',   topic:'Live SQL'},
-  mongo:{hall:'Merriman Market Hall', short:'Market Hall', topic:'Documents and queries'},
-  json: {hall:'Crockford House',      short:'Crockford',   topic:'JSON syntax and structure'},
-  xml:  {hall:'Goldfarb Archive',     short:'Archive',     topic:'XML, XPath, older data models'}
+  er:   {hall:'Chen Hall',            short:'Chen',        topic:'ERDs and relational notation'},
+  rel:  {hall:'Codd Hall',            short:'Codd',        topic:'Integrity and normalisation'},
+  sql:  {hall:'Boyce Laboratory',     short:'Boyce Lab',   topic:'SQL and relational algebra'},
+  mongo:{hall:'Merriman Market Hall', short:'Market Hall', topic:'NoSQL and types of data'},
+  json: {hall:'Crockford House',      short:'Crockford',   topic:'Representing data in JSON'},
+  xml:  {hall:'Goldfarb Archive',     short:'Archive',     topic:'Representing data in XML'}
 };
 WORLDS.forEach(w=>Object.assign(w,HALLS[w.id],{ink:`var(--h-${w.id})`}));
 
@@ -1219,7 +1746,7 @@ document.body.insertAdjacentHTML('afterbegin',`<svg width="0" height="0" style="
 /* =====================================================================
    UI HELPERS
    ===================================================================== */
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800);}
+function toast(t,ms=1800){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),ms);}
 function announce(t){const l=$('#live');l.textContent='';setTimeout(()=>{l.textContent=t;},60);}
 function worldStars(w){return w.ch.reduce((a,c)=>a+(S.stars[c.id]||0),0);}
 function totalStars(){return ALL.reduce((a,c)=>a+(S.stars[c.id]||0),0);}
@@ -1233,7 +1760,8 @@ function mongoHTML(r){if(r.kind==='count')return `<pre>${r.value}</pre>`;if(r.ki
 
 /* typewriter key bars */
 const KEYS={
-  sql:['SELECT','*','FROM','WHERE',',','=',"'",'(',')','AND','OR','ORDER BY','DESC','GROUP BY','HAVING','COUNT(*)','AVG(','JOIN','ON','LEFT JOIN','LIKE','%','.',';','INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE','ALTER TABLE','ADD COLUMN','INTEGER','TEXT','PRIMARY KEY','NOT NULL'],
+  sql:['SELECT','*','FROM','WHERE',',','=','<>',"'",'(',')','AND','OR','ORDER BY','DESC','GROUP BY','HAVING','COUNT(','SUM(','MAX(','JOIN','ON','LEFT JOIN','LIKE','%','_','.',';','INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE','CREATE VIEW','AS','ALTER TABLE','ADD COLUMN','DEFAULT','INTEGER','TEXT','REAL','PRIMARY KEY','REFERENCES','NOT NULL','CHECK','IN'],
+  ra:['π','σ','⋈','×','−','∪','∩','ρ','←','∧','∨','¬','=','≠','>','<','≥','≤',"'",'(',')',','],
   mongo:['db.students.find(','{','}',':',',','"','[',']',')','$gt','$gte','$lt','$lte','$ne','$in','$or','$elemMatch','$set','.sort(','.limit(','insertOne(','updateOne(','-1','_id'],
   json:['{','}','[',']','"',':',',','true','false','null'],
   xml:['<','>','</','/>','"','=','<?xml version="1.0"?>']
@@ -1325,7 +1853,7 @@ function home(){
   const recap=`<div class="recap"><span class="label">Year ${level()}</span><span class="label">${star1()} ${tot}/${max} marks</span>${S.streak>0?`<span class="label tally" aria-label="Streak ${S.streak}">${icon('flame')}${tally(S.streak)} ${S.streak}</span>`:''}</div>`;
   app.innerHTML=`<div class="homegrid"><div>${top}${recap}
     <h2 class="sr">Campus map</h2><div class="campus" id="campus">${groundSVG()}${NODES.map(nodeBtn).join('')}</div>
-    <div class="foot"><button class="card" id="shopBtn" style="--hall:var(--h-ink)">${art('shop')}<span class="t"><h3>The Workshop</h3><p>Free SQL, Mongo, JSON and XML. Nothing is graded.</p></span>${icon('arrow')}</button></div>
+    <div class="foot"><button class="card" id="shopBtn" style="--hall:var(--h-ink)">${art('shop')}<span class="t"><h3>The Workshop</h3><p>Free SQL, relational algebra, Mongo, JSON and XML. Nothing is graded.</p></span>${icon('arrow')}</button></div>
     <div class="resetrow"><button id="keysBtn" class="desk-only">Keyboard shortcuts</button> <button id="resetBtn">Reset progress</button></div></div>
     <aside class="side" id="side" aria-label="Building details"></aside></div>`;
   const side=$('#side');
@@ -1355,7 +1883,7 @@ function worldScreen(id){
   app.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>play(w.ch[+b.dataset.i],{mode:'world'}));
 }
 function stripTags(s){const d=document.createElement('div');d.innerHTML=s;return d.textContent;}
-function typeLabel(c){return {mcq:'Quick pick',sort:'Sort it out',build:'Build it',sql:c.dml?'SQL: change data':'SQL query',mongo:c.write?'Mongo write':'Mongo query',json:'JSON code',xml:'XML code'}[c.type];}
+function typeLabel(c){return {mcq:'Quick pick',sort:'Sort it out',build:'Build it',sql:c.dml?'SQL: change data':'SQL query',ra:'Relational algebra',mongo:c.write?'Mongo write':'Mongo query',json:'JSON code',xml:'XML code'}[c.type];}
 function lessons(id,k){
   const w=worldById(id), L=w.lessons[k], last=k===w.lessons.length-1; screen('',w.ink);
   setHeader({back:()=>worldScreen(id),kicker:w.hall,title:'Lecture notes',progress:(k+1)/w.lessons.length});
@@ -1429,21 +1957,39 @@ const RENDER={
   const out=$('#out');
   const withSQL=fn=>{if(SQL)return fn();out.innerHTML='<div class="muted">Starting the SQL engine…</div>';sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`The SQL engine couldn't start in this browser: ${esc(sqlErr.message)}`);return;}fn();});};
   const expected=()=>{const db=freshDB();const r=runSQL(db,c.expect);const fin=c.dml?runSQL(db,c.check):r;db.close();return fin;};
-  const runUser=()=>{const db=freshDB();try{const src=$('#ed').value;if(!src.trim())throw new Error('Type a query first.');const r=runSQL(db,src);const fin=c.dml?runSQL(db,c.check):r;return {r,fin};}finally{db.close();}};
-  $('#run').onclick=()=>withSQL(()=>{try{const {r,fin}=runUser();out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(r)}${c.dml?`<div class="lbl">Table after your change</div>${tableHTML(fin)}`:''}`;}catch(e){out.innerHTML=ERR(esc(e.message));}});
-  $('#tables').onclick=()=>withSQL(()=>{const db=freshDB();out.innerHTML=['student','course','enrolment'].map(t=>`<div class="lbl">${t}</div>${tableHTML(runSQL(db,'SELECT * FROM '+t))}`).join('');db.close();});
+  const runUser=()=>{const db=freshDB();try{const src=$('#ed').value;if(!src.trim())throw new Error('Type a query first.');const r=runSQL(db,src);const fin=c.dml?runSQL(db,c.check):r;const vmsg=c.verify?c.verify(db):'';return {r,fin,vmsg};}finally{db.close();}};
+  $('#run').onclick=()=>withSQL(()=>{try{const {r,fin}=runUser();out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(r)}${c.dml?`<div class="lbl">${c.verify?'Structure after your change':'Table after your change'}</div>${tableHTML(fin)}`:''}`;}catch(e){out.innerHTML=ERR(esc(e.message));}});
+  $('#tables').onclick=()=>withSQL(()=>{const db=freshDB();out.innerHTML=(c.tables||CASES.firm).map(t=>`<div class="lbl">${t}</div>${tableHTML(runSQL(db,'SELECT * FROM '+t))}`).join('');db.close();});
   $('#target').onclick=()=>withSQL(()=>{out.innerHTML=`<div class="lbl">Target · ${c.dml?'the table should look like this afterwards':'your query should return this'}</div>${tableHTML(expected())}`;});
   setCheck(()=>withSQL(()=>{CUR.state.code=$('#ed').value;let u;
     try{u=runUser();}catch(e){out.innerHTML=ERR(esc(e.message));judge(false,'Your SQL has an error. Read the red message, fix it and try again.');return;}
-    const ex=expected(); let ok=u.fin.columns.length===ex.columns.length && rowsKey(u.fin,c.order)===rowsKey(ex,c.order);
+    const ex=expected(); let ok=u.fin.columns.length===ex.columns.length && rowsKey(u.fin,c.order)===rowsKey(ex,c.order) && !u.vmsg;
     let msg='';
-    if(!ok){ if(u.fin.columns.length!==ex.columns.length) msg=`You returned ${u.fin.columns.length} column(s); the target has ${ex.columns.length}.`;
+    if(!ok){ if(u.vmsg) msg=u.vmsg;
+      else if(u.fin.columns.length!==ex.columns.length) msg=`You returned ${u.fin.columns.length} column(s); the target has ${ex.columns.length}.`;
       else if(u.fin.values.length!==ex.values.length) msg=`You returned ${u.fin.values.length} row(s); the target has ${ex.values.length}.`;
       else if(c.order&&rowsKey(u.fin,false)===rowsKey(ex,false)) msg='Right rows, but the order is wrong.';
       else msg='The values don’t match the target yet.'; }
     out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(c.dml?u.fin:u.r)}${ok?'':`<div class="lbl">Target</div>${tableHTML(ex)}`}`;
     judge(ok,msg,ok?`<div class="out"><div class="lbl">One model answer</div><pre>${esc(c.expect)}</pre></div>`:'');
   }));
+ },
+ ra(c){
+  $('#area').innerHTML=`<div class="engine">Relational algebra · runs on the ${esc((c.tables||[]).map(t=>t[0].toUpperCase()+t.slice(1)).join(', '))} relations</div>
+    <textarea class="ed" id="ed" ${edAttrs} aria-label="Relational algebra editor" placeholder="π attributes (σ condition (Relation))">${esc(CUR.state.code||'')}</textarea>${keyBar('ra','ed')}
+    <div class="row" style="margin-top:8px"><button class="btn o sm" id="run">${icon('play')} Run</button><button class="btn o sm" id="tables">${icon('table')} Tables</button><button class="btn o sm" id="target">${icon('target')} Target</button></div>
+    <div class="out" id="out" aria-live="polite"></div>`;
+  const out=$('#out');
+  const withSQL=fn=>{if(SQL)return fn();out.innerHTML='<div class="muted">Starting the engine…</div>';sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`The engine couldn't start in this browser: ${esc(sqlErr.message)}`);return;}fn();});};
+  const runRA=src=>{const db=freshDB();try{return raRun(db,src);}finally{db.close();}};
+  $('#run').onclick=()=>withSQL(()=>{try{out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(runRA($('#ed').value))}`;}catch(e){out.innerHTML=ERR(esc(e.message));}});
+  $('#tables').onclick=()=>withSQL(()=>{const db=freshDB();out.innerHTML=(c.tables||[]).map(t=>`<div class="lbl">${t[0].toUpperCase()+t.slice(1)}</div>${tableHTML(runSQL(db,'SELECT * FROM '+t))}`).join('');db.close();});
+  $('#target').onclick=()=>withSQL(()=>{out.innerHTML=`<div class="lbl">Target · your expression should return this</div>${tableHTML(runRA(c.expect))}`;});
+  setCheck(()=>withSQL(()=>{CUR.state.code=$('#ed').value;let u;
+    try{u=runRA($('#ed').value);}catch(e){out.innerHTML=ERR(esc(e.message));judge(false,'Your expression didn’t run. Read the red message, fix it and try again.');return;}
+    const ex=runRA(c.expect), r=raSame(u,ex);
+    out.innerHTML=`<div class="lbl">Your result</div>${tableHTML(u)}${r.ok?'':`<div class="lbl">Target</div>${tableHTML(ex)}`}`;
+    judge(r.ok,r.msg,r.ok?`<div class="out"><div class="lbl">One model answer</div><pre>${esc(c.expect)}</pre></div>`:'');}));
  },
  mongo(c){
   $('#area').innerHTML=`<div class="engine">Collection · <code>db.students</code> · 8 documents</div>
@@ -1488,7 +2034,7 @@ const RENDER={
   $('#run').onclick=()=>{try{parse();out.innerHTML=OK('Well-formed XML');}catch(e){out.innerHTML=ERR(esc(e.message));}};
   setCheck(()=>{CUR.state.code=$('#ed').value;let d;
     try{d=parse();}catch(e){out.innerHTML=ERR('Not well-formed: '+esc(e.message));judge(false,'The XML isn’t well-formed yet. Check that every tag closes with matching case.');return;}
-    const m=XML_CHECKS[c.check](d); out.innerHTML=m?`${OK('Well-formed, but…')}${ERR(esc(m))}`:OK('Well-formed and correct');
+    const m=XML_CHECKS[c.check](d,$('#ed').value); out.innerHTML=m?`${OK('Well-formed, but…')}${ERR(esc(m))}`:OK('Well-formed and correct');
     judge(!m,m);});
  }
 };
@@ -1594,21 +2140,28 @@ function bossEnd(ctx){
 let SANDDB=null, SANDCOLL=null;
 function sandbox(tab){
   screen('','var(--h-ink)'); setHeader({back:home,kicker:'Campus',title:'The Workshop'});
-  app.innerHTML=`<p class="muted" style="margin:0 0 12px">Free practice. Nothing is graded.</p><div class="tabs" role="tablist">${['sql','mongo','json','xml'].map(t=>`<button role="tab" aria-selected="${t===tab}" data-t="${t}" class="${t===tab?'on':''}">${t.toUpperCase()}</button>`).join('')}</div>
+  app.innerHTML=`<p class="muted" style="margin:0 0 12px">Free practice. Nothing is graded.</p><div class="tabs" role="tablist">${['sql','ra','mongo','json','xml'].map(t=>`<button role="tab" aria-selected="${t===tab}" data-t="${t}" class="${t===tab?'on':''}">${t==='ra'?'ALGEBRA':t.toUpperCase()}</button>`).join('')}</div>
    <div class="card" id="sb"></div>`;
   app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>sandbox(b.dataset.t));
   const sb=$('#sb');
   if(tab==='sql'){
-    sb.innerHTML=`<div class="muted" style="font-size:14px">Tables: student, course, enrolment. Your changes stay until you reset. You can run several statements at once.</div>
-    <textarea class="ed" id="sed" ${edAttrs} aria-label="SQL editor" style="min-height:160px">SELECT major, COUNT(*) AS students, ROUND(AVG(gpa),2) AS avg_gpa
-FROM student
-GROUP BY major;</textarea>${keyBar('sql','sed')}
+    sb.innerHTML=`<div class="muted" style="font-size:14px">Tables: ${Object.values(CASES).flat().join(', ')}. Your changes stay until you reset. You can run several statements at once.</div>
+    <textarea class="ed" id="sed" ${edAttrs} aria-label="SQL editor" style="min-height:160px">SELECT d.deptName, COUNT(*) AS staff, SUM(e.salary) AS salaryBill
+FROM department d JOIN employee e ON d.deptID = e.deptID
+GROUP BY d.deptName
+ORDER BY d.deptName;</textarea>${keyBar('sql','sed')}
     <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('play')} Run</button><button class="btn o sm" id="sreset">${icon('reset')} Reset DB</button><button class="btn o sm" id="sschema">${icon('table')} Schema</button></div><div class="out" id="sout" aria-live="polite"></div>`;
     const out=$('#sout');
     const ensure=fn=>sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`SQL engine failed to start: ${esc(sqlErr.message)}`);return;}if(!SANDDB)SANDDB=freshDB();fn();});
     $('#srun').onclick=()=>ensure(()=>{try{const res=SANDDB.exec($('#sed').value);out.innerHTML=res.length?res.map(r=>tableHTML(r)).join(''):OK(`Done. ${SANDDB.getRowsModified()} row(s) changed.`);}catch(e){out.innerHTML=ERR(esc(e.message));}});
     $('#sreset').onclick=()=>ensure(()=>{SANDDB.close();SANDDB=freshDB();out.innerHTML=OK('Database reset to the original data.');});
     $('#sschema').onclick=()=>ensure(()=>{out.innerHTML=tableHTML(SANDDB.exec("SELECT name, sql FROM sqlite_master WHERE type='table'")[0]);});
+  } else if(tab==='ra'){
+    sb.innerHTML=`<div class="muted" style="font-size:14px">Relational algebra on the same tables (${Object.values(CASES).flat().join(', ')}). Use one line per assignment (Name ← expression); the last line is the answer.</div>
+    <textarea class="ed" id="sed" ${edAttrs} aria-label="Relational algebra editor" style="min-height:140px">π venueName (Venue) − π venueName (Venue ⋈ Workshop)</textarea>${keyBar('ra','sed')}
+    <div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('play')} Run</button></div><div class="out" id="sout" aria-live="polite"></div>`;
+    const out=$('#sout');
+    $('#srun').onclick=()=>sqlReady.then(()=>{if(sqlErr){out.innerHTML=ERR(`The engine failed to start: ${esc(sqlErr.message)}`);return;}const db=freshDB();try{out.innerHTML=tableHTML(raRun(db,$('#sed').value));}catch(e){out.innerHTML=ERR(esc(e.message));}finally{db.close();}});
   } else if(tab==='mongo'){
     if(!SANDCOLL)SANDCOLL={students:clone(MONGO_STUDENTS)};
     sb.innerHTML=`<div class="muted" style="font-size:14px">Collection: db.students. Supports find, findOne, countDocuments, insertOne/Many, updateOne/Many, deleteOne/Many, sort, limit and skip.</div>
@@ -1621,7 +2174,7 @@ GROUP BY major;</textarea>${keyBar('sql','sed')}
   "code": "CMP2018",
   "title": "Database Design",
   "credits": 3,
-  "units": ["ER", "Relational", "SQL", "NoSQL"]
+  "deliveryModes": ["Face-to-Face", "Online"]
 }</textarea>${keyBar('json','sed')}<div class="row" style="margin-top:8px"><button class="btn sm" id="srun">${icon('search')} Validate &amp; format</button><button class="btn o sm" id="sxml">${icon('convert')} Convert to XML</button></div><div class="out" id="sout" aria-live="polite"></div>`;
     $('#srun').onclick=()=>{try{$('#sout').innerHTML=`${OK('Valid JSON')}<pre>${esc(JSON.stringify(JSON.parse($('#sed').value),null,2))}</pre>`;}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
     $('#sxml').onclick=()=>{try{const v=JSON.parse($('#sed').value);$('#sout').innerHTML=`<div class="lbl">As XML</div><pre>${esc(toXML(v,'root',''))}</pre>`;}catch(e){$('#sout').innerHTML=ERR(esc(e.message));}};
@@ -1664,6 +2217,7 @@ document.addEventListener('keydown',e=>{
 
 applyTheme();
 home();
+if(CONTENT_NOTE){toast(CONTENT_NOTE,6500);announce(CONTENT_NOTE);}
 </script>
 </body>
 </html>
