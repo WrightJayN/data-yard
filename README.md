@@ -34,7 +34,7 @@ Plus:
 - **Examination Hall:** a 12-question paper drawn from every building, marked once per question, graded A–F on a transcript.
 - **The Workshop:** free practice with SQL, relational algebra, Mongo, JSON and XML, plus JSON ↔ XML conversion.
 
-Each building has lecture notes (shown beside the worksheet on wide screens). You earn up to three marks per
+Each building has lecture notes (shown beside the worksheet on wide screens; hide them with **Hide notes** or `N`). You earn up to three marks per
 exercise, plus XP, Years (levels) and streaks. There is a day (paper) and night (library) theme.
 Progress is saved in the browser (`localStorage`). Saves from before the exam-paper update keep their XP; their marks are reset because the exercises changed.
 
@@ -56,7 +56,7 @@ All student and staff names in the sample data are fictional.
 
 - **Offline:** download `index.html` and open it in any modern browser (desktop or phone). Without a connection it falls back to system fonts.
 - **Online:** https://wrightjayn.github.io/data-yard/ (GitHub Pages, deployed from `main`).
-- **Keyboard (desktop):** `Ctrl/⌘+Enter` run · `1–4` pick an option · `Enter` check · `H` hint · `Esc` back · `?` all shortcuts.
+- **Keyboard (desktop):** `Ctrl/⌘+Enter` run · `1–4` pick an option · `Enter` check · `H` hint · `N` hide/show notes · `Esc` back · `?` all shortcuts.
 
 ## Develop
 

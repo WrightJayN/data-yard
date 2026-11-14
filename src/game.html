@@ -44,14 +44,14 @@ document.documentElement.setAttribute('data-theme',t);})();
 
 /* ===================== BASE ===================== */
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.85}
 body{min-height:100vh;transition:background-color .25s,color .25s}
 body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:var(--grain-o);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3  0 0 0 0 .25  0 0 0 0 .2  0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 #hdr,#app,.dock{position:relative;z-index:1}
 #app{max-width:720px;margin:0 auto;padding:16px 16px 128px}
-h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;font-weight:700;line-height:1.15}
-h1{font-size:28px} h2{font-size:22px;line-height:1.25} h3{font-size:18px;line-height:1.3}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.01em;font-weight:700;line-height:1.4}
+h1{font-size:28px} h2{font-size:22px;line-height:1.5} h3{font-size:18px;line-height:1.55}
 @media(min-width:640px){h1{font-size:32px}}
 p{margin:0 0 12px}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
@@ -76,7 +76,7 @@ body.wide #hdr .in{max-width:1240px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .brand .crest{color:var(--accent);flex:none}
 .wordmark{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.htitle{flex:1;min-width:0;line-height:1.2}
+.htitle{flex:1;min-width:0;line-height:1.45}
 .htitle b{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hall);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .htitle span{display:block;font-family:var(--display);font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hstat{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -86,7 +86,7 @@ body.wide #hdr .in{max-width:1240px}
 
 /* ===================== BUTTONS ===================== */
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:4px;font-family:var(--sans);font-weight:600;font-size:15px;line-height:1.2;
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;border-radius:4px;font-family:var(--sans);font-weight:600;font-size:15px;line-height:1.45;
   background:var(--accent);color:var(--on-accent);border:1px solid var(--accent);transition:transform .06s,background-color .15s}
 .btn:hover{background:var(--accent-press);border-color:var(--accent-press)}
 .btn:active{transform:translateY(1px)}
@@ -121,7 +121,7 @@ body.wide #hdr .in{max-width:1240px}
 .bld{position:absolute;width:38%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 2px 8px;border-radius:4px;transform:translateX(-50%)}
 @media(hover:hover){.bld:hover{background:color-mix(in srgb,var(--sheet) 70%,transparent)}}
 .bld .art{width:78%;max-width:110px;height:auto;color:var(--hall);display:block}
-.bld .nm{font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;line-height:1.2;margin-top:2px}
+.bld .nm{font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;line-height:1.45;margin-top:2px}
 .bld .pg{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .bld .pg b{color:var(--hall);font-weight:600}
 .side{display:none}
@@ -146,18 +146,18 @@ body.wide #hdr .in{max-width:1240px}
 .ex .n{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--hall);width:24px;flex:none}
 .ex .t{flex:1;min-width:0}
 .ex .t b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);font-weight:600}
-.ex .t span{display:block;font-size:15px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex .t span{display:block;font-size:15px;line-height:1.65;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===================== LECTURE NOTES ===================== */
 .lesson{max-width:62ch}
 .lesson h2{margin:6px 0 12px}
-.lesson p,.lesson li{font-size:16px;line-height:1.65}
+.lesson p,.lesson li{font-size:16px;line-height:1.9}
 .lesson ul,.lesson ol{padding-left:22px;margin:8px 0 12px}
 .lesson b{color:var(--hall);font-weight:600}
 .notes-side{display:none}
 code,.code{font-family:var(--mono);font-size:.88em}
 code{background:var(--sheet-2);padding:1px 5px;border-radius:2px;border:1px solid var(--rule)}
-pre{background:var(--sheet-2);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.55;color:var(--ink);margin:10px 0;white-space:pre}
+pre{background:var(--sheet-2);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.8;color:var(--ink);margin:10px 0;white-space:pre}
 pre code{border:0;padding:0;background:none}
 
 /* ER figures: restyle the authored SVG so it reads as printed ink */
@@ -174,26 +174,26 @@ pre code{border:0;padding:0;background:none}
 /* ===================== WORKSHEET ===================== */
 .ws{position:relative;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;box-shadow:var(--shadow);padding:20px 16px 22px 44px;margin-bottom:16px}
 .ws::before{content:"";position:absolute;top:0;bottom:0;left:28px;width:1px;background:var(--redpen);opacity:.28}
-.ws .mnum{position:absolute;left:0;width:28px;top:22px;text-align:center;font:600 11px/1 var(--mono);color:var(--hall)}
+.ws .mnum{position:absolute;left:0;width:28px;top:22px;text-align:center;font:600 11px/1.25 var(--mono);color:var(--hall)}
 .ws .mmark{position:absolute;left:1px;width:26px;height:26px;top:50px;pointer-events:none}
 .ws .mmark svg{width:100%;height:100%;overflow:visible}
 .tag{display:block;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hall);margin-bottom:8px}
-.q{font-size:18px;line-height:1.5;font-weight:500;margin:0}
+.q{font-size:18px;line-height:1.75;font-weight:500;margin:0}
 .q b{font-weight:600}
-.qsub{color:var(--ink-2);font-size:15px;margin:8px 0 0;line-height:1.5}
+.qsub{color:var(--ink-2);font-size:15px;margin:8px 0 0;line-height:1.75}
 .anno{position:absolute;top:-16px;right:10px;z-index:2;transform:rotate(-2deg);background:var(--sheet);border:1px solid var(--rule);box-shadow:0 4px 12px -6px rgba(0,0,0,.25);
-  padding:2px 12px 4px;font:600 22px/1.15 var(--hand);color:var(--tick);max-width:70%;pointer-events:none}
+  padding:2px 12px 4px;font:600 22px/1.4 var(--hand);color:var(--tick);max-width:70%;pointer-events:none}
 .anno.bad{color:var(--redpen)}
 .anno .uline{display:block;height:7px;margin-top:-2px}
 .anno .uline svg{width:100%;height:7px;display:block}
-.hint{margin-top:16px;padding:8px 0 0 12px;border-left:2px solid var(--pencil);font:600 20px/1.3 var(--hand);color:var(--ink-2)}
+.hint{margin-top:16px;padding:8px 0 0 12px;border-left:2px solid var(--pencil);font:600 20px/1.55 var(--hand);color:var(--ink-2)}
 .hint .label{display:block;font-size:10.5px;margin-bottom:2px;color:var(--ink-2)}
 
 /* MCQ */
 .opts{display:flex;flex-direction:column;gap:10px;margin-top:16px}
-.opt{display:flex;align-items:flex-start;gap:12px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;text-align:left;font-size:15.5px;line-height:1.45;min-height:52px;transition:border-color .15s,background-color .15s;position:relative}
+.opt{display:flex;align-items:flex-start;gap:12px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;padding:12px 14px;text-align:left;font-size:15.5px;line-height:1.7;min-height:52px;transition:border-color .15s,background-color .15s;position:relative}
 .opt:hover{background:var(--sheet-2)}
-.opt .k{width:28px;height:28px;flex:none;display:grid;place-items:center;border:1px solid var(--rule);border-radius:2px;font:600 13px/1 var(--mono);color:var(--ink-2);margin-top:-2px}
+.opt .k{width:28px;height:28px;flex:none;display:grid;place-items:center;border:1px solid var(--rule);border-radius:2px;font:600 13px/1.25 var(--mono);color:var(--ink-2);margin-top:-2px}
 .opt .ot{flex:1;min-width:0}
 .opt.sel{border-color:var(--hall);box-shadow:inset 0 0 0 1px var(--hall)}
 .opt.sel .k{background:var(--hall);border-color:var(--hall);color:var(--sheet)}
@@ -209,7 +209,7 @@ pre code{border:0;padding:0;background:none}
 .sortItem{background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--rule);border-radius:4px;padding:12px 14px;margin-top:10px}
 .sortItem.bad{border-left-color:var(--redpen)}
 .sortItem.good{border-left-color:var(--tick)}
-.sortItem .lab{font-weight:500;margin-bottom:10px;line-height:1.4}
+.sortItem .lab{font-weight:500;margin-bottom:10px;line-height:1.65}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{min-height:40px;padding:0 12px;border-radius:2px;border:1px solid var(--rule);background:var(--sheet-2);font-size:14px;font-weight:500}
 .chip.on{background:var(--hall);border-color:var(--hall);color:var(--sheet)}
@@ -221,7 +221,7 @@ pre code{border:0;padding:0;background:none}
 
 /* editor */
 textarea.ed{display:block;width:100%;min-height:128px;background:var(--sheet-2);color:var(--ink);border:1px solid var(--rule);border-left:2px solid var(--rule);border-radius:4px;padding:12px 14px;
-  font-family:var(--mono);font-size:14.5px;line-height:1.55;resize:vertical;margin-top:16px;transition:border-color .15s}
+  font-family:var(--mono);font-size:14.5px;line-height:1.8;resize:vertical;margin-top:16px;transition:border-color .15s}
 textarea.ed:focus{border-left-color:var(--hall);outline:2px solid var(--accent);outline-offset:2px}
 textarea.ed::placeholder{color:var(--ink-2);opacity:.8}
 .engine{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-top:14px}
@@ -260,7 +260,7 @@ table.fixed th,table.fixed td{overflow:hidden;text-overflow:ellipsis}
 table.resizing{cursor:col-resize;user-select:none}
 @media(min-width:600px){.tbl.rz{resize:vertical;max-height:none;min-height:76px}.tbl.rz th{padding-right:20px}}
 .rows{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:6px}
-.err,.ok{display:flex;gap:10px;align-items:flex-start;background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--redpen);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;word-break:break-word}
+.err,.ok{display:flex;gap:10px;align-items:flex-start;background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--redpen);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.75;margin-top:12px;white-space:pre-wrap;word-break:break-word}
 .err .ic{color:var(--redpen);margin-top:1px}
 .ok{border-left-color:var(--tick);font-family:var(--sans);font-size:14px;white-space:normal}
 .ok .ic{color:var(--tick);margin-top:1px}
@@ -269,7 +269,7 @@ table.resizing{cursor:col-resize;user-select:none}
 .note{scroll-margin:84px 0 96px;border-top:1px solid var(--rule);margin:4px 0 16px;padding:16px 4px 0;animation:rise .3s ease-out both}
 .note .label{color:var(--tick);display:flex;align-items:center;gap:6px}
 .note.bad .label{color:var(--redpen)}
-.note .nb{margin-top:8px;font-size:15.5px;line-height:1.6}
+.note .nb{margin-top:8px;font-size:15.5px;line-height:1.85}
 .note .stats{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-variant-numeric:tabular-nums}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}}
 
@@ -304,7 +304,7 @@ body.wide .dock .btn{flex:0 1 360px}
 .cover dd{margin:0;text-align:left;font-weight:600}
 .grade{width:132px;height:132px;margin:8px auto 10px;border:2px solid var(--accent);border-radius:50%;display:grid;place-items:center;position:relative;transform:rotate(-6deg);color:var(--accent)}
 .grade::before{content:"";position:absolute;inset:6px;border:1px solid var(--accent);border-radius:50%}
-.grade b{font-family:var(--display);font-size:72px;line-height:1;font-weight:700}
+.grade b{font-family:var(--display);font-size:72px;line-height:1.25;font-weight:700}
 .grade small{position:absolute;bottom:18px;font-family:var(--mono);font-size:9px;letter-spacing:.14em}
 .transcript td,.transcript th{white-space:normal}
 .transcript td:last-child,.transcript th:last-child{text-align:right}
@@ -337,10 +337,14 @@ svg .k{fill:var(--sheet)}
 @media(min-width:1024px){
   body.wide #app{max-width:1240px}
   .playgrid{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:32px;align-items:start}
+  .playgrid.nonotes{grid-template-columns:minmax(0,1fr)}
+  .playgrid.nonotes .notes-side{display:none}
+  .playgrid.nonotes .main{width:100%;max-width:880px;margin:0 auto}
+  body.wide .dock .notesBtn{margin-right:auto;flex:none;width:auto;max-width:none}
   .notes-side{display:block;position:sticky;top:84px;max-height:calc(100vh - 190px);overflow:auto;padding-right:8px}
   .notes-side .lesson{border-top:1px solid var(--rule);padding:16px 0 4px}
   .notes-side .lesson h2{font-size:17px;margin:4px 0 8px}
-  .notes-side .lesson p,.notes-side .lesson li{font-size:14.5px;line-height:1.6}
+  .notes-side .lesson p,.notes-side .lesson li{font-size:14.5px;line-height:1.85}
   .ws{padding:28px 184px 28px 72px}
   .ws::before{left:56px}
   .ws .mnum{width:56px;top:30px;font-size:13px}
@@ -1771,16 +1775,21 @@ function play(c,ctx){
     ?{back:home,kicker:'Examination Hall',title:`Question ${pad(ctx.i+1)} / ${ctx.list.length}`,right:`<span class="hstat" id="clock" aria-label="Time elapsed">${icon('clock')} <span>${elapsed(ctx)}</span></span>`,progress:ctx.i/ctx.list.length}
     :{back:()=>worldScreen(c.world),kicker:w.hall,title:`Exercise ${pad(c.idx+1)} / ${pad(w.ch.length)}`,right:starStr(S.stars[c.id]||0),progress:c.idx/w.ch.length});
   const notes=boss?'':`<aside class="notes-side" aria-label="Lecture notes for ${w.hall}"><div class="label" style="margin-bottom:8px">Lecture notes · ${w.hall}</div>${w.lessons.map(L=>`<section class="lesson"><h2>${L[0]}</h2>${L[1]}</section>`).join('')}</aside>`;
-  app.innerHTML=`<div class="${boss?'solo':'playgrid'}">${notes}<div class="main">
+  app.innerHTML=`<div class="${boss?'solo':'playgrid'+(S.notesOff?' nonotes':'')}">${notes}<div class="main">
     <article class="ws" id="qcard" aria-labelledby="qtext"><span class="mnum" aria-hidden="true">${pad(boss?ctx.i+1:c.idx+1)}</span><span class="mmark" id="mmark" aria-hidden="true"></span><div id="anno" aria-hidden="true"></div>
       <span class="tag">${typeLabel(c)}${boss?' · '+w.hall:''}</span>
       <div class="q" id="qtext">${c.q}</div>${c.sub?`<div class="qsub">${c.sub}</div>`:''}
       ${c.fig?`<div class="fig">${c.fig}</div>`:''}<div id="area"></div><div id="hintArea"></div></article>
     <div id="note"></div></div></div>`;
-  setDock(`<button class="hbtn" id="hintBtn" aria-label="Show a hint">${icon('pencil')}</button><button class="btn" id="checkBtn">Check</button>`);
-  $('#hintBtn').onclick=showHint;
+  setDock(`${boss?'':`<button class="btn o desk-only notesBtn" id="notesBtn" aria-pressed="${!S.notesOff}" aria-label="${S.notesOff?'Show':'Hide'} the lecture notes (N)">${icon('book')} <span>${S.notesOff?'Show notes':'Hide notes'}</span></button>`}<button class="hbtn" id="hintBtn" aria-label="Show a hint">${icon('pencil')}</button><button class="btn" id="checkBtn">Check</button>`);
+  $('#hintBtn').onclick=showHint; if($('#notesBtn'))$('#notesBtn').onclick=toggleNotes;
   RENDER[c.type](c);
 }
+/* Lecture notes beside the worksheet (desktop): hide or show them; the choice is remembered. */
+function toggleNotes(){const g=$('.playgrid'),b=$('#notesBtn');if(!g||!b)return;S.notesOff=!S.notesOff;save();
+  g.classList.toggle('nonotes',S.notesOff);b.querySelector('span').textContent=S.notesOff?'Show notes':'Hide notes';
+  b.setAttribute('aria-pressed',String(!S.notesOff));b.setAttribute('aria-label',(S.notesOff?'Show':'Hide')+' the lecture notes (N)');
+  announce(S.notesOff?'Lecture notes hidden':'Lecture notes shown');}
 function showHint(){const c=CUR.c;const h=c.hint||(c.type==='mcq'?'Re-read the question carefully, then rule out the options that are clearly wrong.':'Check the lecture notes for this building.');
   CUR.hint=true;
   $('#hintArea').innerHTML=`<div class="hint"><span class="label">Pencilled hint</span>${esc(h)}</div>`;}
@@ -2067,10 +2076,10 @@ function fromXML(el){const kids=[...el.children];const o={};[...el.attributes].f
 /* ---------- keyboard shortcuts (desktop) ---------- */
 function showKeys(){if($('.kbd'))return;
   document.body.insertAdjacentHTML('beforeend',`<div class="kbd" role="dialog" aria-modal="true" aria-labelledby="kbdT"><div class="card"><div class="row" style="justify-content:space-between"><h2 id="kbdT" style="font-size:18px">Keyboard shortcuts</h2><button class="hbtn" id="kbdX" aria-label="Close">${icon('x')}</button></div>
-    <dl><dt>Ctrl/⌘ + Enter</dt><dd>Run the query</dd><dt>1 – 4</dt><dd>Pick an option</dd><dt>Enter</dt><dd>Check your answer</dd><dt>H</dt><dd>Show a hint</dd><dt>Esc</dt><dd>Go back</dd><dt>?</dt><dd>This list</dd></dl></div></div>`);
+    <dl><dt>Ctrl/⌘ + Enter</dt><dd>Run the query</dd><dt>1 – 4</dt><dd>Pick an option</dd><dt>Enter</dt><dd>Check your answer</dd><dt>H</dt><dd>Show a hint</dd><dt>N</dt><dd>Hide or show the lecture notes</dd><dt>Esc</dt><dd>Go back</dd><dt>?</dt><dd>This list</dd></dl></div></div>`);
   const k=$('.kbd');$('#kbdX').onclick=()=>k.remove();k.onclick=e=>{if(e.target===k)k.remove();};$('#kbdX').focus();}
 document.addEventListener('keydown',e=>{
-  const t=e.target, typing=t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT');
+  const t=e.target, typing=t&&(t.tagName==='TEXTAREA'||t.tagName==='INPUT'||t.tagName==='SELECT');
   if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){const r=$('#run')||$('#srun');if(r){e.preventDefault();r.click();}return;}
   if(e.key==='Escape'){const k=$('.kbd');if(k){k.remove();return;}if(typing){t.blur();return;}if(BACK){e.preventDefault();BACK();}return;}
   if(e.key==='Enter'&&t&&t.classList&&t.classList.contains('opt')&&t.classList.contains('sel')){const b=$('#checkBtn');if(b){e.preventDefault();b.click();}return;}
@@ -2079,6 +2088,7 @@ document.addEventListener('keydown',e=>{
   if(!$('#qcard'))return;
   if(/^[1-6]$/.test(e.key)){const o=app.querySelectorAll('.opt')[+e.key-1];if(o){o.click();o.focus();}return;}
   if(e.key==='h'||e.key==='H'){const h=$('#hintBtn');if(h&&!h.hidden)h.click();return;}
+  if((e.key==='n'||e.key==='N')&&$('#notesBtn')&&getComputedStyle($('#notesBtn')).display!=='none'){toggleNotes();return;}
   if(e.key==='Enter'&&!(t&&(t.tagName==='BUTTON'||t.tagName==='A'))){const b=$('#checkBtn');if(b){e.preventDefault();b.click();}}
 });
 
