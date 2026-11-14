@@ -225,9 +225,18 @@ textarea.ed{display:block;width:100%;min-height:128px;background:var(--sheet-2);
 textarea.ed:focus{border-left-color:var(--hall);outline:2px solid var(--accent);outline-offset:2px}
 textarea.ed::placeholder{color:var(--ink-2);opacity:.8}
 .engine{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);margin-top:14px}
-.keys{display:flex;gap:6px;overflow-x:auto;padding:10px 0 4px;scrollbar-width:none}
-.keys::-webkit-scrollbar{display:none}
+.keys{padding:10px 0 4px}
+.keyhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.keylbl{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.keycat{appearance:none;-webkit-appearance:none;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--ink);min-height:40px;padding:0 34px 0 12px;
+  border:1px solid var(--rule);border-bottom-width:2px;border-radius:2px;background-color:var(--sheet);cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--ink-2) 50%),linear-gradient(135deg,var(--ink-2) 50%,transparent 50%);
+  background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.keycat:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.keygrid{display:flex;flex-wrap:wrap;gap:6px;max-height:160px;overflow-y:auto;overscroll-behavior:contain;padding:1px 2px 2px 1px;scrollbar-width:thin}
+.keygrid.more{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent);mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent)}
 .key{flex:none;font-family:var(--mono);font-size:13px;min-height:40px;min-width:40px;padding:0 10px;border-radius:2px;background:var(--sheet);border:1px solid var(--rule);border-bottom-width:2px;font-weight:600;color:var(--ink)}
+.key,.keycat,textarea.ed,pre,code,table{font-variant-ligatures:none;font-feature-settings:'calt' 0,'liga' 0}
 .key:active{transform:translateY(1px);border-bottom-width:1px}
 .squig{height:7px;margin-top:6px;background:var(--redpen);animation:draw .45s ease-out both;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M0 3.5Q3 0 6 3.5T12 3.5' fill='none' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x left center;
@@ -242,6 +251,14 @@ table{border-collapse:collapse;width:100%;font-size:13px;font-family:var(--mono)
 th,td{padding:7px 12px;border-bottom:1px solid var(--rule);text-align:left;white-space:nowrap}
 th{background:var(--sheet-2);color:var(--ink-2);position:sticky;top:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
 tr:last-child td{border-bottom:0}
+/* resizable tables (screens 600px+): drag a column edge, or the box's corner */
+.colgrip{position:absolute;top:0;right:0;bottom:0;width:12px;cursor:col-resize;touch-action:none;outline:none}
+.colgrip::after{content:'';position:absolute;top:24%;bottom:24%;right:5px;width:2px;border-radius:1px;background:var(--rule)}
+.colgrip:hover::after,.colgrip:focus-visible::after,table.resizing .colgrip::after{background:var(--accent)}
+table.fixed{table-layout:fixed}
+table.fixed th,table.fixed td{overflow:hidden;text-overflow:ellipsis}
+table.resizing{cursor:col-resize;user-select:none}
+@media(min-width:600px){.tbl.rz{resize:vertical;max-height:none;min-height:76px}.tbl.rz th{padding-right:20px}}
 .rows{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:6px}
 .err,.ok{display:flex;gap:10px;align-items:flex-start;background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--redpen);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.5;margin-top:12px;white-space:pre-wrap;word-break:break-word}
 .err .ic{color:var(--redpen);margin-top:1px}
@@ -328,6 +345,7 @@ svg .k{fill:var(--sheet)}
   .ws::before{left:56px}
   .ws .mnum{width:56px;top:30px;font-size:13px}
   .ws .mmark{left:13px;width:30px;height:30px;top:62px}
+  .ws .tbl{margin-right:-160px} /* tables use the wide right margin that the handwritten notes leave free */
   .anno{top:58px;right:14px;width:156px;max-width:none;background:none;border:0;box-shadow:none;transform:rotate(-3deg);padding:0;font-size:24px}
   body.wide.home #app{max-width:1040px}
   .homegrid{display:grid;grid-template-columns:minmax(0,480px) 1fr;gap:40px;align-items:start}
@@ -622,10 +640,10 @@ Emp_Phone(<u>TRN</u>, <u>phoneNumber</u>)
    hint:'External = one user’s view. Conceptual = the whole logical design. Internal = physical storage.',
    why:'Indexes, disk addresses and pointers are <b>internal</b>. A partial file for one user is <b>external</b>. Definitions of all data and their relationships are <b>conceptual</b>.'},
   {type:'mcq', q:'Which list gives the six steps of the Database Development Life Cycle in order?',
-   opts:['Requirements definition, preliminary planning, design, feasibility study, implementation, evaluation and maintenance','Preliminary planning, feasibility study, requirements definition, design, implementation, evaluation and maintenance','Feasibility study, preliminary planning, design, requirements definition, testing, implementation','Design, implementation, requirements definition, feasibility study, normalisation, maintenance'], a:1,
+   opts:['Preliminary planning, requirements definition, feasibility study, design, implementation, evaluation and maintenance','Feasibility study, preliminary planning, requirements definition, design, implementation, evaluation and maintenance','Preliminary planning, feasibility study, requirements definition, design, implementation, evaluation and maintenance','Preliminary planning, feasibility study, design, requirements definition, implementation, evaluation and maintenance'], a:2,
    why:'Plan, check feasibility (technological, operational, economic), define requirements, design, implement, then evaluate and maintain.'},
   {type:'mcq', q:'Which statement best explains why strategic database planning matters to an organisation?',
-   opts:['It replaces the need for a DBA','It identifies and justifies the resources the organisation’s information needs will require, and the chances for departments to share data','It writes the SQL for every table','It guarantees the DBMS never fails'], a:1,
+   opts:['It sets out future information needs and justifies the resources to meet them','It lets the DBA write every table’s SQL before any users are interviewed','It replaces the feasibility study, so the DDLC can begin straight at design','It guarantees the DBMS never fails, by budgeting for backup hardware early'], a:0,
    why:'Strategic planning treats data as a corporate resource. It sets out future information needs, justifies resources, spots shared-data opportunities and sets action plans. The DDLC then builds each database it proposes.'},
   {type:'sort', q:'Read the case, then tag each word or phrase.', sub:'“A clinic stores each <b>patient’s</b> TRN and date of birth. <b>Doctors</b> have an ID and an email. A patient <b>books</b> an <b>appointment</b> with a doctor; each appointment has a date and a status.”',
    cats:['Entity','Attribute','Relationship'], items:[['Patient',0],['Doctor',0],['Appointment',0],['books',2],['TRN',1],['status',1],['email',1]],
@@ -636,54 +654,54 @@ Emp_Phone(<u>TRN</u>, <u>phoneNumber</u>)
    hint:'Parts = composite. "One or more" / "all" = multivalued. Calculated = derived.',
    why:'Name and address have parts (composite). "One or more" and "all" signal multivalued attributes. A duration calculated from two dates is derived. A generated ID is the unique identifier.'},
   {type:'mcq', q:'Read the diagram (arrow = one). Which sentence is correct?', fig:erd({l:'STUDENT',r:'COURSE',rel:'registers',rOne:true}),
-   opts:['A student registers for many courses; a course has one student','A student registers for at most one course; a course can have many students','Every student must register for a course','Student and course are M:N'], a:1,
+   opts:['A student registers for many courses; a course has one student','Every student must register for a course, and every course must have students','Student and course are M:N, since neither line is doubled','A student registers for at most one course; a course has many students'], a:3,
    hint:'The arrow points at the ONE side.', why:'The arrow points at COURSE, so each student relates to at most one course. No arrow at STUDENT, so a course has many students. Single lines mean participation is optional on both sides.'},
   {type:'mcq', q:'What does the double line on the LOAN side mean?', fig:erd({l:'CUSTOMER',r:'LOAN',rel:'borrows',rTotal:true}),
-   opts:['A loan has exactly one customer','Every loan must be borrowed by at least one customer (total participation)','Loan is a weak entity','Every customer must have a loan'], a:1,
+   opts:['A loan is held by exactly one customer, shown by the arrow','LOAN is a weak entity, identified through CUSTOMER by the double line','Every loan must belong to at least one customer','Every customer must hold at least one loan from the bank'], a:2,
    why:'A double line shows total (mandatory) participation for that entity: a loan cannot exist without a customer. With no arrows, the relationship is M:N, so loans can be joint.'},
   {type:'mcq', q:'“An album contains several tracks; each track belongs to exactly one album.” Using the course notation, where does the arrow go?',
-   opts:['On the line to ALBUM','On the line to TRACK','On both lines','Nowhere, because this is M:N'], a:0,
+   opts:['On the line to TRACK, because a track belongs to one album','On the line to ALBUM','On both lines, because it is a one-to-many relationship','Nowhere: arrows are only drawn for one-to-one relationships'], a:1,
    hint:'One track → how many albums? One album → how many tracks?',
    why:'One track belongs to ONE album, so the line to ALBUM gets the arrow. One album has MANY tracks, so the line to TRACK has none. It is 1:M.'},
   {type:'mcq', q:'“An appointment has an AppointmentNo that is unique only within a specific doctor. An appointment cannot exist unless the doctor exists.” How is APPOINTMENT modelled?',
-   opts:['A strong entity with AppointmentNo as its key','A weak entity owned by DOCTOR, with AppointmentNo as the discriminator','A multivalued attribute of DOCTOR','A derived attribute'], a:1,
+   opts:['A weak entity owned by DOCTOR, with AppointmentNo as the discriminator','A strong entity whose primary key is AppointmentNo on its own','A multivalued attribute of DOCTOR listing every AppointmentNo','A strong entity keyed by AppointmentNo and date, linked to DOCTOR by a 1:M relationship'], a:0,
    why:'AppointmentNo repeats across doctors, so it only works as a discriminator. APPOINTMENT is weak (double rectangle, identifying double diamond, total participation), and its key is (doctorID, AppointmentNo).'},
   {type:'mcq', q:'“Each experiment is numbered sequentially within its research project.” What primary key will EXPERIMENT get in the relational notation?', html:true,
-   opts:['<code>Experiment(<u>seqNo</u>, …)</code>','<code>Experiment(<u>projectID</u>, <u>seqNo</u>, …)</code>, with projectID as an FK','<code>Experiment(<u>projectID</u>, …)</code>','<code>Project(<u>projectID</u>, seqNo, …)</code>'], a:1,
+   opts:['<code>Experiment(<u>seqNo</u>, projectID, title)</code><br>Foreign Key projectID references Project','<code>Experiment(<u>projectID</u>, title, …)</code>','<code>Project(<u>projectID</u>, seqNo, …)</code>','<code>Experiment(<u>projectID</u>, <u>seqNo</u>, …)</code>'], a:3,
    why:'"Numbered within" means EXPERIMENT is weak. Its PK is the owner’s key plus the discriminator: (projectID, seqNo). projectID is also an FK to Project.'},
   {type:'mcq', q:'“A student may mentor other students (mentees). A mentee’s mentor can change over time, so the start and end dates of each mentorship are stored.” What is this?',
-   opts:['A binary 1:1 relationship between STUDENT and MENTOR','A unary (recursive) M:N relationship on STUDENT, with roles mentor and mentee and attributes startDate and endDate','A specialisation of STUDENT','A ternary relationship'], a:1,
+   opts:['A binary 1:1 relationship between STUDENT and a separate MENTOR entity','A specialisation of STUDENT into MENTOR and MENTEE subclasses, with startDate and endDate on each','A unary M:N relationship on STUDENT, with the dates on the relationship','A weak entity MENTORSHIP owned by STUDENT, with no relationship attributes'], a:2,
    why:'Only one entity set (STUDENT) takes part, twice, so it is unary. A mentee can have several mentors over time, and a mentor several mentees, so it is M:N, and the dates sit on the relationship.'},
   {type:'mcq', q:'“A patient who refers other patients is also noted.” Each patient is referred by at most one patient. How does this appear in the relational notation?', html:true,
-   opts:['<code>Referral(<u>patientID</u>, <u>referredID</u>)</code> only','<code>Patient(<u>patientID</u>, …, referredBy)</code> with <code>Foreign Key referredBy references Patient</code>','<code>Patient(<u>patientID</u>, <u>referredBy</u>, …)</code>','It can’t be stored'], a:1,
-   why:'It is a unary 1:M relationship, so the "many" side (the referred patient) stores the key of the "one" side as an FK in the same relation.'},
+   opts:['<code>Referral(<u>patientID</u>, <u>referredID</u>)</code><br>Foreign Key patientID references Patient<br>Foreign Key referredID references Patient','<code>Patient(<u>patientID</u>, …, referredBy)</code><br>Foreign Key referredBy references Patient','<code>Patient(<u>patientID</u>, <u>referredBy</u>, …)</code>','<code>Patient(<u>patientID</u>, …, referredBy)</code><br>Foreign Key patientID references Referral'], a:1,
+   why:'It is a unary 1:M relationship, so the "many" side (the referred patient) stores the key of the "one" side as an FK in the same relation. A separate bridge relation is only needed for M:N.'},
   {type:'mcq', q:'“For each condition diagnosed during an appointment, the clinic stores the doctor’s notes and the severity level.” Where do <i>notes</i> and <i>severity</i> belong?', html:true,
-   opts:['On CONDITION','On APPOINTMENT','On the M:N relationship <i>diagnoses</i> between APPOINTMENT and CONDITION','As multivalued attributes of DOCTOR'], a:2,
+   opts:['On the M:N relationship <i>diagnoses</i>','On CONDITION, since severity describes how serious a condition is','On APPOINTMENT, since the notes are written during the appointment','As multivalued attributes of DOCTOR, who writes the notes'], a:0,
    why:'The notes and severity describe one condition in one appointment, which is the pairing. They go on the relationship, which becomes the bridge Diagnosis(appointment key, conditionCode, notes, severity).'},
   {type:'mcq', q:'“Each award recognises an artist’s performance on a particular track.” Which construct models this?',
-   opts:['A ternary relationship ARTIST–TRACK–AWARD with no other structure','Aggregation: treat PERFORMS (artist and track) as a higher-level entity and relate AWARD to it','A weak entity AWARD owned by ARTIST','A derived attribute of TRACK'], a:1,
+   opts:['A ternary relationship joining ARTIST, TRACK and AWARD','A weak entity AWARD owned by ARTIST, with the track number as discriminator','A derived attribute of TRACK, calculated from its performances','Aggregation: relate AWARD to the PERFORMS relationship'], a:3,
    why:'The award is about the <i>performance</i>, which is itself a relationship. Since ER can’t link a relationship to a relationship, box PERFORMS as an aggregate and relate AWARD to it.'},
   {type:'mcq', q:'“Any diagnosis marked high severity must be reviewed by a specialist. The review applies to the specific diagnosis made for that appointment.” What is the best model?',
-   opts:['A REVIEWS relationship between DOCTOR and PATIENT','Aggregation of DIAGNOSES (appointment and condition), linked by REVIEWS to SPECIALIST, with reviewDate and decision on REVIEWS','A multivalued attribute review on CONDITION','A weak entity REVIEW owned by SPECIALIST'], a:1,
+   opts:['A REVIEWS relationship between SPECIALIST and PATIENT, with reviewDate and decision on it','Aggregate DIAGNOSES and relate it to SPECIALIST through REVIEWS','A multivalued attribute review on CONDITION, holding each specialist’s decision','A weak entity REVIEW owned by SPECIALIST, numbered within each specialist'], a:1,
    why:'The review targets one diagnosis, which is a relationship. Aggregate DIAGNOSES, relate it to SPECIALIST, and store the review’s date and decision on that relationship.'},
   {type:'sort', q:'Name the specialisation constraint each scenario describes.', cats:['Total, disjoint','Partial, disjoint','Overlapping'],
    items:[['Albums are classified as either studio albums or live albums.',0],['A firm has permanent and contract staff, and occasionally takes on casual staff who need no extra details.',1],['A university member can be a student, a staff member, or both.',2],['Doctors are either general practitioners or specialists.',0]],
    hint:'“Either … or” = disjoint. “Or both” = overlapping. Someone left over with no subclass = partial.',
    why:'Studio/live and GP/specialist: every entity is exactly one type (total, disjoint). Casual staff belong to no subclass, so that one is partial. "Or both" means overlapping.'},
   {type:'mcq', q:'Read this specialisation. Which statement is correct?', fig:isaFig({sup:'DOCTOR',subs:['GP','SPECIALIST'],disjoint:true,total:true}),
-   opts:['A doctor may be both a GP and a specialist','Every doctor must be exactly one of GP or specialist','Some doctors are neither','GP and SPECIALIST are weak entities'], a:1,
+   opts:['Every doctor is exactly one of GP or specialist','A doctor may be both a GP and a specialist at the same time','Some doctors are neither, because the line above ISA is optional','GP and SPECIALIST are weak entities that depend on DOCTOR'], a:0,
    why:'The double line above the ISA means total (every doctor is specialised). The word <i>disjoint</i> means a doctor is at most one subclass. Together: exactly one.'},
   {type:'mcq', q:'“The company records all contact numbers for each artist.” What is the correct relational notation for the phone numbers?', html:true,
-   opts:['<code>Artist(<u>artistID</u>, …, phone1, phone2, phone3)</code>','<code>Artist_Phone(<u>artistID</u>, <u>phoneNumber</u>)</code><br>Foreign Key artistID references Artist','<code>Artist_Phone(<u>phoneNumber</u>, artistID)</code>','<code>Artist(<u>artistID</u>, <u>phoneNumber</u>, stageName, …)</code>'], a:1,
+   opts:['<code>Artist(<u>artistID</u>, stageName, phone1, phone2, phone3)</code>','<code>Artist_Phone(<u>phoneNumber</u>, artistID, phoneType)</code><br>Foreign Key artistID references Artist','<code>Artist_Phone(<u>artistID</u>, <u>phoneNumber</u>)</code><br>Foreign Key artistID references Artist','<code>Artist(<u>artistID</u>, <u>phoneNumber</u>, stageName)</code>'], a:2,
    why:'A multivalued attribute becomes its own relation. The owner’s key plus the value form the PK, and the owner’s key is an FK. Numbered columns cap the count and leave blanks.'},
   {type:'mcq', q:'Albums are specialised into studio albums (studio, producer) and live albums (venue, performanceDate). Which is the correct relation for a studio album?', html:true,
-   opts:['<code>Studio(<u>studioID</u>, producer)</code>','<code>Studio(<u>albumID</u>, studio, producer)</code><br>Foreign Key albumID references Album','<code>Album(<u>albumID</u>, title, studio, producer, venue, performanceDate)</code> only','<code>Studio(albumID, <u>producer</u>)</code>'], a:1,
+   opts:['<code>Studio(<u>studioID</u>, producer)</code>','<code>Album(<u>albumID</u>, title, studio, producer, venue, performanceDate)</code> only, leaving NULLs in the other type’s fields','<code>Studio(albumID, <u>producer</u>, studio)</code><br>Foreign Key albumID references Album','<code>Studio(<u>albumID</u>, studio, producer)</code><br>Foreign Key albumID references Album'], a:3,
    why:'Each subclass gets its own relation. It inherits the superclass key, which is both its PK and an FK to Album.'},
   {type:'mcq', q:'Artists perform on tracks (M:N), and each performance records the instrument and whether the artist was the lead. TRACK is weak: Track(<u>albumID</u>, <u>trackNo</u>, title, duration). Which relation stores the performances?', html:true,
-   opts:['<code>Performs(<u>artistID</u>, <u>trackNo</u>, instrument, isLead)</code>','<code>Performs(<u>artistID</u>, <u>albumID</u>, <u>trackNo</u>, instrument, isLead)</code><br>Foreign Key artistID references Artist<br>Foreign Key (albumID, trackNo) references Track','<code>Track(<u>albumID</u>, <u>trackNo</u>, artistID, instrument)</code>','<code>Artist(<u>artistID</u>, instrument, isLead)</code>'], a:1,
+   opts:['<code>Performs(<u>artistID</u>, <u>albumID</u>, <u>trackNo</u>, instrument, isLead)</code><br>Foreign Key artistID references Artist<br>Foreign Key (albumID, trackNo) references Track','<code>Performs(<u>artistID</u>, <u>trackNo</u>, instrument, isLead)</code><br>Foreign Key artistID references Artist<br>Foreign Key trackNo references Track','<code>Track(<u>albumID</u>, <u>trackNo</u>, artistID, instrument, isLead)</code><br>Foreign Key artistID references Artist','<code>Performs(<u>artistID</u>, <u>albumID</u>, <u>trackNo</u>, <u>instrument</u>, isLead)</code><br>Foreign Key artistID references Artist<br>Foreign Key albumID references Album<br>Foreign Key trackNo references Track'], a:0,
    why:'An M:N becomes a bridge. It takes the <i>whole</i> key of each side. TRACK’s key is (albumID, trackNo), so both columns come across, plus the relationship attributes.'},
   {type:'mcq', q:'An employee manages one department, and each department is managed by exactly one employee (1:1, total on DEPARTMENT). Best mapping?', html:true,
-   opts:['<code>Employee(<u>TRN</u>, …, deptName)</code> and <code>Department(<u>name</u>, budget, TRN)</code>','<code>Department(<u>name</u>, budget, TRN)</code><br>Foreign Key TRN references Employee, with TRN unique and NOT NULL','<code>Manages(<u>TRN</u>, <u>name</u>)</code> with no other change','<code>Department(<u>name</u>, <u>TRN</u>, budget)</code>'], a:1,
+   opts:['<code>Employee(<u>TRN</u>, …, deptName)</code> and <code>Department(<u>name</u>, budget, TRN)</code>, each with a foreign key to the other','<code>Manages(<u>TRN</u>, <u>name</u>)</code>, a bridge relation as for M:N','<code>Department(<u>name</u>, budget, TRN)</code><br>Foreign Key TRN references Employee (unique, not null)','<code>Department(<u>name</u>, <u>TRN</u>, budget)</code><br>Foreign Key TRN references Employee'], a:2,
    why:'For 1:1, put the FK on one side, preferably the side with total participation (every department has a manager, so TRN can’t be NULL). Mark it unique so no employee manages two departments.'}
  ]},
 { id:'rel', name:'Relation Ridge', blurb:'Paper Q3 and Q4: keys, entity and referential integrity, anomalies, functional dependencies, dependency diagrams, and normalising a table to 4NF.', unit:'Lectures 5–8',
@@ -743,7 +761,7 @@ Order_Item(<u>OrderNo</u>, <u>Item</u>)
  ],
  ch:[
   {type:'mcq', q:'Does this Student table satisfy entity integrity? (StudentID is the primary key.)', sub:qtbl(['StudentID','FirstName','LastName'],[['2001','Alicia','Brown'],[null,'Marcus','Grant'],['2003',null,'Thomas'],['2001','David','Lee']]),
-   opts:['Yes, every row has a last name','No: one primary key is NULL and 2001 appears twice','No, because FirstName is NULL in one row','Yes, NULLs are allowed in keys'], a:1,
+   opts:['Yes: every row has a last name, so each row can be identified','No, because FirstName is NULL in one row','Yes: duplicate keys are allowed as long as the names differ','No: one key is NULL and 2001 appears twice'], a:3,
    why:'Entity integrity needs every PK value to be present and unique. Row 2 has a NULL key and 2001 is repeated. A NULL FirstName is fine, since it isn’t part of the key.'},
   {type:'sort', q:'Department holds D01, D02 and D03. Check each new Employee row (EmpID is the PK, DeptID is an optional FK).', sub:qtbl(['DeptID','DeptName'],[['D01','Human Resources'],['D02','IT'],['D03','Finance']]),
    cats:['Valid','Breaks referential integrity','Breaks entity integrity'],
@@ -751,13 +769,13 @@ Order_Item(<u>OrderNo</u>, <u>Item</u>)
    hint:'Referential integrity is about the FK; entity integrity is about the PK.',
    why:'D05 and D09 don’t exist in Department, which breaks referential integrity. A NULL EmpID breaks entity integrity. A NULL DeptID is allowed when the FK is optional.'},
   {type:'mcq', q:'How does a FOREIGN KEY constraint prevent referential integrity violations?',
-   opts:['It makes the column unique','The DBMS rejects any insert or update whose FK value has no matching PK, and restricts or cascades deletes of referenced rows','It sorts the table by the key','It stops NULLs in the primary key'], a:1,
+   opts:['It makes the foreign key column unique, so no value can repeat','It rejects FK values with no matching PK, and restricts deletes of referenced rows','It copies the referenced row into the child table on every insert, so the two always agree','It stops NULLs from appearing in the primary key of the child table'], a:1,
    why:'The constraint ties the FK to the referenced PK. Unmatched values are rejected, and deleting a referenced row is restricted, cascaded or set to NULL, so no orphans appear.'},
   {type:'mcq', q:'Which statement correctly compares candidate keys and primary keys?',
-   opts:['A table has only one candidate key','A candidate key is any minimal set of attributes that uniquely identifies a tuple; the primary key is the one candidate key chosen for that job','Primary keys may contain NULLs','A candidate key must be a foreign key'], a:1,
+   opts:['A candidate key is any minimal unique identifier; the primary key is the one chosen','A table has only one candidate key, which is always the same as its primary key','Primary keys may contain NULLs but candidate keys never can, which is why designers prefer candidate keys','A candidate key must also be a foreign key in another relation'], a:0,
    why:'A relation may have several candidate keys (TRN, email). The designer picks one as the primary key; the rest become alternate keys.'},
   {type:'mcq', q:'Which statement correctly contrasts an attribute with a domain?',
-   opts:['They are the same thing','An attribute is a named column of a relation; a domain is the set of allowed values that attribute can take','A domain is a row','An attribute is the set of all tables'], a:1,
+   opts:['An attribute is a row of a relation; a domain is the table that holds it','They mean the same thing, so a relation’s degree equals its number of domains','An attribute is a named column; a domain is its set of allowed values','A domain is the set of all tables in a database; an attribute is one table'], a:2,
    why:'The attribute <i>grade</i> is the column; its domain is {A, B+, B, …, F}. Several attributes can share one domain.'},
   {type:'sort', q:'This table stores staff and their project hours. Name the anomaly each action causes.', sub:qtbl(['StaffID','ProjectCode','ProjBudget','Hours','StaffName','DeptName'],[['E1011','CMP23','55','10','Ali Bryan','HR'],['E1011','MAT21','63','7','Ali Bryan','HR'],['E1024','CMP23','55','5','Dee Small','Sales'],['E1032','MAT21','63','2','Bram Sterling','Finance']]),
    cats:['Insertion','Update','Deletion'],
@@ -770,13 +788,13 @@ Order_Item(<u>OrderNo</u>, <u>Item</u>)
    hint:'Look for two rows that agree on the left side but differ on the right.',
    why:'R12 appears with two different dates, so RoomNo doesn’t determine SessionDate. Dana Kerr appears with S10 and S14, so TutorName doesn’t determine StudentNo. The other two never break.'},
   {type:'mcq', q:'What is a full functional dependency, and how does it relate to 2NF?',
-   opts:['An attribute that depends on any single column','A non-key attribute that depends on the whole composite key and not on any part of it; 2NF requires every non-key attribute to be fully dependent','A dependency between two non-key attributes','A dependency that only exists in 3NF'], a:1,
+   opts:['An attribute that depends on any single column of the table','A dependency between two non-key attributes, which 2NF allows but 3NF forbids','A dependency that only appears once a table is in 3NF, so 2NF ignores it entirely','A non-key attribute depends on the whole key, not part of it; 2NF requires this'], a:3,
    why:'If removing any part of the key breaks the dependency, it is full. 2NF means 1NF plus every non-key attribute fully dependent on the key (no partial dependencies).'},
   {type:'mcq', q:'What is the minimum normal form every relation must satisfy?',
-   opts:['1NF: every attribute holds a single atomic value, with no repeating groups','2NF','3NF','BCNF'], a:0,
+   opts:['2NF, because every table needs a primary key','1NF: every attribute holds one atomic value','3NF, because transitive dependencies cause anomalies','BCNF, because every determinant must be a key'], a:1,
    why:'A table that holds lists or repeating groups isn’t a proper relation. 1NF (atomic values) is the minimum; the higher forms are design goals.'},
   {type:'mcq', q:'Delivery(OrderNo, Item, OrderDate, CustID, CustName, RiderID, RiderName). One order has several items. FDs: OrderNo → OrderDate, CustID, RiderID; CustID → CustName; RiderID → RiderName; OrderNo →→ Item. What is the candidate key?',
-   opts:['OrderNo','(OrderNo, Item)','(CustID, RiderID)','(OrderNo, CustID)'], a:1,
+   opts:['OrderNo','(CustID, RiderID)','(OrderNo, Item)','(OrderNo, CustID)'], a:2,
    why:'OrderNo alone repeats once per item, so it can’t identify a row. (OrderNo, Item) does, and together they determine everything else.'},
   {type:'sort', q:'Using the Delivery table (key: OrderNo, Item), classify each dependency.', fig:depd(['OrderNo','Item','OrderDate','CustID','CustName','RiderID','RiderName'],[0,1],[{from:[0],to:[2,3,5]},{from:[3],to:[4]},{from:[5],to:[6]},{from:[0],to:[1],mvd:true}]),
    cats:['Partial','Transitive','Multi-valued'],
@@ -784,31 +802,28 @@ Order_Item(<u>OrderNo</u>, <u>Item</u>)
    hint:'Part of the key → partial. Non-key → non-key → transitive. →→ is multi-valued.',
    why:'OrderNo is only part of the key, so those are partial. CustID and RiderID are non-key, so their arrows are transitive. One order has many items, independent of the rest: multi-valued.'},
   {type:'mcq', q:'What normal form is the Delivery table in, and why?', fig:depd(['OrderNo','Item','OrderDate','CustID','CustName','RiderID','RiderName'],[0,1],[{from:[0],to:[2,3,5]},{from:[3],to:[4]},{from:[5],to:[6]}]),
-   opts:['3NF, because it has a key','1NF: values are atomic, but there are partial dependencies on OrderNo','2NF, because there are no partial dependencies','BCNF'], a:1,
+   opts:['1NF: there are partial dependencies on OrderNo','2NF: there are no partial dependencies, only transitive ones','3NF, because every attribute is atomic and there is a key','BCNF, because OrderNo is a determinant'], a:0,
    why:'Atomic values and a key give 1NF. OrderNo → OrderDate, CustID, RiderID depends on only part of (OrderNo, Item), which is a partial dependency, so it isn’t in 2NF.'},
   {type:'mcq', q:'Which is the correct 4NF decomposition of Delivery?', html:true,
-   opts:['<code>Delivery(<u>OrderNo</u>, <u>Item</u>, OrderDate, CustID, CustName, RiderID, RiderName)</code>',
-     '<code>Customer(<u>CustID</u>, CustName)</code><br><code>Rider(<u>RiderID</u>, RiderName)</code><br><code>Orders(<u>OrderNo</u>, OrderDate, CustID, RiderID)</code> FKs CustID → Customer, RiderID → Rider<br><code>Order_Item(<u>OrderNo</u>, <u>Item</u>)</code> FK OrderNo → Orders',
-     '<code>Orders(<u>OrderNo</u>, Item, OrderDate)</code><br><code>Customer(<u>CustID</u>, CustName, RiderName)</code>',
-     '<code>Order_Item(<u>OrderNo</u>, <u>Item</u>, CustName)</code><br><code>Rider(<u>RiderID</u>, RiderName)</code>'], a:1,
+   opts:['<code>Customer(<u>CustID</u>, CustName)</code> · <code>Rider(<u>RiderID</u>, RiderName)</code><br><code>Orders(<u>OrderNo</u>, <u>Item</u>, OrderDate, CustID, RiderID)</code> FKs CustID → Customer, RiderID → Rider<br><code>Order_Item(<u>OrderNo</u>, <u>Item</u>)</code> FK OrderNo → Orders','<code>Orders(<u>OrderNo</u>, OrderDate, CustID, CustName, RiderID, RiderName)</code><br><code>Order_Item(<u>OrderNo</u>, <u>Item</u>)</code> FK OrderNo → Orders','<code>Customer(<u>CustID</u>, CustName, RiderID, RiderName)</code><br><code>Orders(<u>OrderNo</u>, <u>Item</u>, OrderDate, CustID)</code> FK CustID → Customer','<code>Customer(<u>CustID</u>, CustName)</code> · <code>Rider(<u>RiderID</u>, RiderName)</code><br><code>Orders(<u>OrderNo</u>, OrderDate, CustID, RiderID)</code> FKs CustID → Customer, RiderID → Rider<br><code>Order_Item(<u>OrderNo</u>, <u>Item</u>)</code> FK OrderNo → Orders'], a:3,
    why:'Partial: OrderNo → OrderDate, CustID, RiderID moves to Orders. Transitive: CustName and RiderName move to Customer and Rider. MVD: items go to Order_Item. Each FK is listed.'},
   {type:'mcq', q:'Plan(BranchID, PlanCode, BranchAddr, Supervisor, SupPhone, PlanName, PlanTerms, Total). FDs: BranchID → BranchAddr, Supervisor; Supervisor → SupPhone; PlanCode → PlanName; PlanName → PlanTerms; BranchID, PlanCode → Total. Which dependency is <b>transitive</b>?', html:true,
-   opts:['BranchID → BranchAddr','BranchID, PlanCode → Total','PlanName → PlanTerms','PlanCode → PlanName'], a:2,
+   opts:['BranchID → BranchAddr','PlanName → PlanTerms','BranchID, PlanCode → Total','PlanCode → PlanName'], a:1,
    why:'PlanName is a non-key attribute and it determines another non-key attribute (PlanTerms), so that one is transitive. Supervisor → SupPhone is transitive too. BranchID → … and PlanCode → … are partial, since the key is (BranchID, PlanCode). BranchID, PlanCode → Total is full.'},
   {type:'mcq', q:'Room(<u>roomNumber</u>, buildingCode, roomType, rentalCost), where roomType → rentalCost (studio 3000, lab 5000, empty 1500). How do you reach 3NF?', html:true,
-   opts:['Add rentalCost to the key','<code>Rental(<u>roomType</u>, rentalCost)</code> and <code>Room(<u>roomNumber</u>, buildingCode, roomType)</code> with Foreign Key roomType references Rental','Split Room by building','It’s already in 3NF'], a:1,
+   opts:['<code>Room(<u>roomNumber</u>, <u>rentalCost</u>, buildingCode, roomType)</code>, making rentalCost part of the key','<code>Rental(<u>roomType</u>, rentalCost)</code> and <code>Room(<u>roomNumber</u>, buildingCode, roomType)</code>, with Foreign Key roomType references Rental','<code>Building(<u>buildingCode</u>, rentalCost)</code> and <code>Room(<u>roomNumber</u>, buildingCode, roomType)</code>, with Foreign Key buildingCode references Building','No change: it is already in 3NF because the key is a single attribute'], a:1,
    why:'roomType is non-key and determines rentalCost (transitive). Move roomType and rentalCost into their own relation; roomType stays in Room as an FK.'},
   {type:'mcq', q:'Tutoring(<u>studentID</u>, <u>subject</u>, tutor). Each tutor teaches only one subject: tutor → subject. Why is it not in BCNF, and what is the fix?', html:true,
-   opts:['It has a partial dependency; split out studentID','tutor is a determinant but not a candidate key; split into <code>TutorSubject(<u>tutor</u>, subject)</code> and <code>StudentTutor(<u>studentID</u>, <u>tutor</u>)</code>','It has a repeating group; add tutor2','It is already in BCNF because it is in 3NF'], a:1,
+   opts:['There is a partial dependency on studentID: split into <code>Student(<u>studentID</u>, subject)</code> and <code>Tutor(<u>tutor</u>, studentID)</code>','It is already in BCNF: it is in 3NF and <code>(studentID, subject)</code> determines tutor, so no split is needed','tutor is non-key, so this is transitive: move it into <code>Subject(<u>subject</u>, tutor)</code> and drop it from Tutoring','tutor determines subject but isn’t a key: use <code>TutorSubject(<u>tutor</u>, subject)</code> and <code>StudentTutor(<u>studentID</u>, <u>tutor</u>)</code>'], a:3,
    why:'BCNF needs every determinant to be a candidate key. tutor determines a key attribute (subject) but isn’t a key. Move tutor → subject out, and tutor replaces subject in the original.'},
   {type:'mcq', q:'Lecturer(<u>lecID</u>, <u>course</u>, <u>hobby</u>): courses and hobbies are independent facts about a lecturer. Which split gives 4NF?', html:true,
-   opts:['<code>Lec_Course(<u>lecID</u>, <u>course</u>)</code> and <code>Lec_Hobby(<u>lecID</u>, <u>hobby</u>)</code>','One table with hobby1, hobby2','<code>Lecturer(<u>lecID</u>, course, hobby)</code>','No change needed'], a:0,
+   opts:['One table with hobby1 and hobby2 columns, so each lecturer is one row','<code>Lecturer(<u>lecID</u>, course, hobby)</code> with lecID as the only key','<code>Lec_Course(<u>lecID</u>, <u>course</u>)</code> and <code>Lec_Hobby(<u>lecID</u>, <u>hobby</u>)</code>','No change: three key attributes already make it 4NF'], a:2,
    why:'lecID →→ course and lecID →→ hobby are independent multi-valued dependencies. Storing them together forces every course–hobby combination. Give each its own table.'},
   {type:'mcq', q:'Kent: a non-key attribute must depend on “the key, the whole key, and nothing but the key.” Which part is the 2NF rule and which is the 3NF rule?',
-   opts:['“The key” = 2NF; “the whole key” = 3NF','“The whole key” = 2NF (no partial dependencies); “nothing but the key” = 3NF (no transitive dependencies)','“Nothing but the key” = 2NF; “the whole key” = 3NF','All three parts describe 1NF'], a:1,
+   opts:['“The key” = 2NF and “the whole key” = 3NF','“The whole key” = 2NF; “nothing but the key” = 3NF','“Nothing but the key” = 2NF; “the whole key” = 3NF','All three parts describe 1NF, which is the only rule the quote covers'], a:1,
    why:'"The whole key" forbids depending on part of a composite key (partial, 2NF). "Nothing but the key" forbids depending on a non-key attribute (transitive, 3NF).'},
   {type:'mcq', q:'Customer(<u>customerID</u>, firstName, lastName, dob, emails), where emails holds several addresses. Which fix gives 1NF?', html:true,
-   opts:['Rename emails to email','<code>Customer(<u>customerID</u>, firstName, lastName, dob)</code> and <code>Customer_Email(<u>customerID</u>, <u>email</u>)</code> with Foreign Key customerID references Customer','Add email1, email2, email3','Make emails the primary key'], a:1,
+   opts:['<code>Customer_Email(<u>customerID</u>, <u>email</u>)</code>, with emails removed from Customer','Add email1, email2 and email3 columns to <code>Customer</code>, leaving unused ones NULL','Make emails part of the key: <code>Customer(<u>customerID</u>, <u>emails</u>, firstName, lastName, dob)</code>','Rename emails to email; one column is enough'], a:0,
    why:'A list in one field isn’t atomic. Move the multivalued attribute to its own relation keyed by owner and value.'}
  ]},
 { id:'sql', name:'SQL Lab', blurb:'Paper Q2: write SQL and relational algebra against exam-style schemas. The SQL runs on real SQLite, and the relational algebra is executed too.', unit:'Labs · Lecture 9',
@@ -952,12 +967,12 @@ CREATE VIEW vwStaff AS SELECT firstName, lastName FROM employee;</pre>
   {type:'ra', tables:CASES.uni, q:'Use assignment (←) and intersection: show the IDs of lecturers who taught in both semester 2025-S2 and semester 2026-S1.', expect:"A ← π lecturerID (σ semester = '2025-S2' (Teaches))\nB ← π lecturerID (σ semester = '2026-S1' (Teaches))\nA ∩ B", hint:"A ← π lecturerID (σ semester = '2025-S2' (Teaches)), then B for 2026-S1, then A ∩ B", why:'Assignment names partial results. ∩ keeps the IDs that appear in both.'},
   {type:'ra', tables:CASES.uni, q:'Use rename (ρ): show the names of other students who have the same major as Priya Singh.', expect:"π S2.studentName (σ S1.studentName = 'Priya Singh' ∧ S1.major = S2.major ∧ S2.studentName ≠ 'Priya Singh' (ρ S1 (Student) × ρ S2 (Student)))", hint:'ρ S1 (Student) × ρ S2 (Student), then compare S1.major = S2.major', why:'Renaming gives two copies of Student so each row can be compared with every other. This is how relational algebra does a self-join.'},
   {type:'mcq', q:'Give the English meaning of: <code>π venueName (Venue) − π venueName (Venue ⋈ Workshop)</code>', html:true,
-   opts:['Names of all venues','Names of venues where no workshop is held','Names of venues that host every workshop','Workshops held at each venue'], a:1,
+   opts:['Names of all venues, with duplicates removed','Names of venues that host every workshop','Workshops held at each venue, listed by venue name','Names of venues where no workshop is held'], a:3,
    why:'The left side is every venue; the right side is venues that join to a workshop. The difference is the venues with no workshops.'},
   {type:'mcq', q:'What does this relational calculus return? <code>{ l.lecturerName | Lecturer(l) ∧ ¬∃ t (Teaches(t) ∧ t.lecturerID = l.lecturerID) }</code>', html:true,
-   opts:['Every lecturer’s name','Names of lecturers who teach no course','Names of lecturers who teach every course','The number of lecturers'], a:1,
+   opts:['Names of lecturers who teach no course','Every lecturer’s name, whether or not they teach','Names of lecturers who teach every course in Teaches','The number of lecturers who have taught at least once'], a:0,
    why:'¬∃ means "there is no". It returns lecturers for whom no Teaches tuple exists, the same answer as the difference query.'},
-  {type:'mcq', q:'R ∪ S, R ∩ S and R − S only work when R and S are…', opts:['The same size','Union-compatible: the same number of attributes with matching domains','Joined first','In 3NF'], a:1,
+  {type:'mcq', q:'R ∪ S, R ∩ S and R − S only work when R and S are…', opts:['The same size, with the same number of tuples','Joined first with ⋈, so they share an attribute','Union-compatible: same degree and matching domains','Both in 3NF, so no duplicate tuples can appear in the result'], a:2,
    why:'Set operations compare whole tuples, so both sides need the same degree and matching domains.'}
  ]},
 { id:'mongo', name:'Mongo Market', blurb:'Paper Q5 / Q6: what NoSQL is, how it differs from an RDBMS, its four families, structured vs semi-structured vs unstructured data, and keys in MongoDB.', unit:'Lecture 10',
@@ -998,7 +1013,7 @@ db.projects.aggregate([{ $lookup: { from: "clients",
   localField: "clientID", foreignField: "_id", as: "client" } }])</pre>`]
  ],
  ch:[
-  {type:'mcq', q:'Which is the best description of a NoSQL database?', opts:['A relational database with no SQL support','A non-relational database that stores data as documents, key-value pairs, columns or graphs, with a flexible schema and horizontal scaling','A spreadsheet','A database that cannot be queried'], a:1,
+  {type:'mcq', q:'Which is the best description of a NoSQL database?', opts:['A relational database that has had its SQL support removed','A spreadsheet-style store where every record must have the same columns','An older name for hierarchical databases such as IBM’s IMS, which stored records as trees','A non-relational database with a flexible schema that scales across servers'], a:3,
    why:'NoSQL means "not only SQL": non-relational models, flexible schemas, and scaling across many servers.'},
   {type:'sort', q:'An online shop collects this data. Classify each item.', cats:['Structured','Semi-structured','Unstructured'],
    items:[['Customer account rows (ID, name, email, purchase total)',0],['Product reviews with free-text comments and optional photos',2],['Website activity logs where entries have different attributes',1],['A product catalogue where phones list battery life and shirts list fabric',1],['Recorded lecture videos',2],['Student records with ID, name, email and programme',0],['Discussion posts with text, images and attachments',2]],
@@ -1009,19 +1024,19 @@ db.projects.aggregate([{ $lookup: { from: "clients",
    hint:'Nested varying records → document. Lookup by one key → key-value. Huge write volume → column. Connections → graph.',
    why:'Documents hold varying nested records. Key-value stores are fastest for a lookup by key. Column-family stores handle huge write loads. Graphs are built for relationships between things.'},
   {type:'mcq', q:'How do column-oriented NoSQL databases differ from document-oriented ones?',
-   opts:['They are identical','A column store groups values by column (fast for reading one attribute across many rows); a document store keeps each whole record together as a nested document (fast for reading one object, with fields that can vary)','A document store has no keys','A column store only holds images'], a:1,
+   opts:['Column stores group values by column (fast for one attribute over many rows); document stores keep each record whole','Column stores keep each record as a nested JSON document; document stores split every attribute into its own file','They are the same model: “column” and “document” are two vendors’ names for key-value storage','Document stores need a fixed schema defined first, while column stores let every row have different columns, which is why they suit catalogues'], a:0,
    why:'Cassandra and HBase organise data by column family for analytics and heavy writes. MongoDB keeps each object together as a JSON-like document.'},
   {type:'mcq', q:'Which statement about NoSQL compared with an RDBMS is TRUE?',
-   opts:['NoSQL always enforces foreign keys','NoSQL usually scales horizontally across many servers and allows records with different fields','An RDBMS cannot store numbers','NoSQL needs every record to have the same columns'], a:1,
+   opts:['NoSQL always enforces foreign keys between collections, just like an RDBMS','NoSQL requires every record in a collection to have the same columns','NoSQL usually scales horizontally and allows varied records','An RDBMS cannot store numbers or dates, so NoSQL is used for them'], a:2,
    why:'Horizontal scaling and a flexible schema are NoSQL’s main strengths. An RDBMS has a fixed schema, enforced relationships and ACID transactions.'},
   {type:'mcq', q:'An online learning company wants to move its discussion posts and varied course information to NoSQL, but keep student records and payments in its relational database. Is this appropriate?',
-   opts:['No, everything must stay relational','Yes: varied and unstructured data suits NoSQL’s flexible schema and scaling, while structured records and payments need the RDBMS’s fixed schema, integrity and ACID transactions','No, NoSQL can’t store text','Yes, and it should also delete the relational database'], a:1,
+   opts:['No: splitting data across two systems always breaks referential integrity, so everything must stay in the relational database','Yes: varied posts suit NoSQL; records and payments need the RDBMS’s integrity and transactions','No: NoSQL databases cannot store free text or images','Yes, and it should then shut down the relational database to save costs'], a:1,
    why:'Use each tool for what it does best. Flexible, fast-growing data goes to NoSQL. Structured data that needs integrity and transactions stays relational.'},
   {type:'mcq', q:'How can you achieve a primary key–foreign key relationship in MongoDB?',
-   opts:['Declare FOREIGN KEY in the collection','Each document’s _id is its primary key; store another document’s _id as a field (a reference) and join with $lookup. MongoDB won’t enforce it.','MongoDB can’t relate documents','Copy every related document into one big document'], a:1,
+   opts:['Declare FOREIGN KEY on the collection, and MongoDB rejects unmatched values','MongoDB cannot relate documents, so all related data must be embedded','Give both documents the same _id, so MongoDB treats them as one record','Store the other document’s _id as a field and join with $lookup'], a:3,
    why:'_id plays the PK role. A stored _id acts like an FK, and $lookup does the join. Referential integrity is left to the application.'},
   {type:'mcq', q:'Why do NoSQL databases matter for big data and modern web applications?',
-   opts:['They are older than relational databases','They handle huge volume, high velocity and wide variety by scaling across servers and storing data without a fixed schema','They need less security','They only work offline'], a:1,
+   opts:['They scale across servers and accept varied data without a fixed schema','They are older than relational databases, so more tools support them','They need less security, so they can be set up without a DBA','They store everything as tables, which makes reports on volume, velocity and variety easier to write'], a:0,
    why:'Big data is high in volume, velocity and variety. Spreading load over many servers and accepting varied structures lets NoSQL keep up.'},
   {type:'sort', q:'Match each SQL term to its MongoDB equivalent.', cats:['Collection','Document','Field','find()'],
    items:[['Table',0],['Row',1],['Column',2],['SELECT … WHERE',3]], why:'Table ↔ collection, row ↔ document, column ↔ field, SELECT/WHERE ↔ find(filter).'},
@@ -1029,7 +1044,7 @@ db.projects.aggregate([{ $lookup: { from: "clients",
   {type:'mongo', q:'Find students with a GPA greater than 3.5.', expect:'db.students.find({ gpa: { $gt: 3.5 } })', hint:'{ gpa: { $gt: 3.5 } }', why:'Comparison operators go inside a nested object: <code>$gt</code> means greater than.'},
   {type:'mongo', q:'Find students who live in the parish of Kingston. (parish is inside the embedded address object.)', expect:'db.students.find({ "address.parish": "Kingston" })', hint:'Use dot notation in quotes: "address.parish"', why:'Dot notation reaches into embedded documents, which is how a document store keeps related data together.'},
   {type:'mongo', write:true, q:'Insert a new student: _id 9, name "Ricky Barnes", major "SE". Leave out every other field.', expect:'db.students.insertOne({ _id: 9, name: "Ricky Barnes", major: "SE" })', hint:'db.students.insertOne({ … })', why:'This document has fewer fields than the others and MongoDB accepts it. That is the flexible schema in action; an RDBMS would need values (or NULLs) for every column.'},
-  {type:'mcq', q:'Each course is taken by thousands of students and its details change often. Inside student documents, you should…', opts:['Embed full course details in every student','Reference courses by code/_id','Store courses as XML','Use one giant document'], a:1,
+  {type:'mcq', q:'Each course is taken by thousands of students and its details change often. Inside student documents, you should…', opts:['Embed the full course details inside every student document','Store the course details as an XML string inside each student','Reference each course by its code or _id','Put every student and course into one giant document'], a:2,
    why:'Shared, large or often-updated data should be referenced. Embedding it would copy it thousands of times, which is the same redundancy problem normalisation solves.'}
  ]},
 { id:'json', name:'JSON Junction', blurb:'Paper Q5 / Q6: represent tables and records in JSON, with nested objects for composite attributes and arrays for multivalued ones.', unit:'Lecture 10',
@@ -1082,8 +1097,8 @@ data.dependents[0]     → "Jaden Mills"</pre><p>Arrays count from <b>0</b>.</p>
    target:{courseID:'CMP2018',title:'Database Design',cost:38000,hours:40,instructor:{id:'I207',name:'Avery Thompson'},deliveryModes:['Face-to-Face','Online'],award:'Certificate of Completion'},
    hint:'"cost": 38000 (no J$ or comma), "deliveryModes": ["Face-to-Face", "Online"]', why:'Amounts are plain numbers. The two delivery modes are a multivalued fact, so they go in an array.'},
   {type:'mcq', q:'Given <code>p = {"name":{"first":"Kerry-Ann","last":"Mills"},"dependents":["Jaden Mills","Zoe Mills"]}</code>, what is <code>p.dependents[1]</code>?', html:true,
-   opts:['"Jaden Mills"','"Zoe Mills"','"Mills"','undefined'], a:1, why:'Arrays start at 0, so [1] is the second dependent.'},
-  {type:'mcq', q:'Best reason to choose JSON over XML for a mobile app’s API?', opts:['JSON supports comments','JSON is lighter and maps directly to JavaScript objects','JSON has stronger schema validation','JSON allows mixed text and tags'], a:1,
+   opts:['"Zoe Mills"','"Jaden Mills"','"Mills"','undefined'], a:0, why:'Arrays start at 0, so [1] is the second dependent.'},
+  {type:'mcq', q:'Best reason to choose JSON over XML for a mobile app’s API?', opts:['JSON supports comments, so the API can document itself','JSON has stronger schema validation than XML with an XSD','JSON is lighter and maps straight to JavaScript objects','JSON lets you mix free text and tags, like an HTML page'], a:2,
    why:'JSON is compact and parses natively in JS. XML is stronger for documents and strict schemas.'}
  ]},
 { id:'xml', name:'XML Cove', blurb:'Paper Q5 / Q6: write well-formed XML for a record, a passage of text, grouped data and a full document with its declaration.', unit:'Lecture 10',
@@ -1113,8 +1128,8 @@ data.dependents[0]     → "Jaden Mills"</pre><p>Arrays count from <b>0</b>.</p>
  ],
  ch:[
   {type:'mcq', q:'Which XML is well-formed?', html:true,
-   opts:['<code>&lt;name&gt;Alex&lt;/Name&gt;</code>','<code>&lt;a&gt;&lt;b&gt;hi&lt;/a&gt;&lt;/b&gt;</code>','<code>&lt;s&gt;&lt;name&gt;Alex&lt;/name&gt;&lt;/s&gt;</code>','<code>&lt;x&gt;1&lt;/x&gt;&lt;y&gt;2&lt;/y&gt;</code>'], a:2,
-   why:'The others have a case mismatch, overlapping tags, or two root elements.'},
+   opts:['<code>&lt;name&gt;Alex&lt;/Name&gt;</code>','<code>&lt;s&gt;&lt;name&gt;Alex&lt;/name&gt;&lt;/s&gt;</code>','<code>&lt;a&gt;&lt;b&gt;hi&lt;/a&gt;&lt;/b&gt;</code>','<code>&lt;student&gt;&lt;name&gt;Alex&lt;/name&gt;&lt;age&gt;20&lt;/student&gt;</code>'], a:1,
+   why:'The others have a case mismatch, overlapping tags, or an &lt;age&gt; that is never closed.'},
   {type:'xml', q:'Fix this XML so it is well-formed.', start:`<workshop>
   <title>Data Modelling</Title>
   <fee>30000
@@ -1134,14 +1149,14 @@ data.dependents[0]     → "Jaden Mills"</pre><p>Arrays count from <b>0</b>.</p>
    sub:'“Course CMP2018, <i>Database Design</i>, costs J$38,000 and runs for 40 hours. It is taught by Avery Thompson (instructor ID I207) and offered Face-to-Face and Online. Students who complete it receive a Certificate of Completion.”', start:'',
    check:'course', hint:'<?xml version="1.0" encoding="UTF-8"?> then <course id="CMP2018"> … <deliveryModes><mode>Face-to-Face</mode><mode>Online</mode></deliveryModes> … </course>',
    why:'The declaration comes first, a single root wraps the course, the instructor nests its id and name, and the two modes are repeated elements.'},
-  {type:'mcq', q:'What is the difference between “valid” and “well-formed” XML?', opts:['They mean the same','Valid = well-formed AND follows a DTD/XSD schema','Well-formed = has a schema','Valid = has no attributes'], a:1,
+  {type:'mcq', q:'What is the difference between “valid” and “well-formed” XML?', opts:['They mean the same thing in XML','Well-formed means the document has a DTD or XSD attached to it','Valid means the document uses no attributes, only elements','Valid = well-formed and matches a DTD or XSD'], a:3,
    why:'All valid XML is well-formed, but well-formed XML is only valid if it matches its schema.'},
   {type:'mcq', q:'How do you write <code>Marks &lt; 50 &amp; failed</code> inside an XML element?', html:true,
-   opts:['<code>Marks < 50 & failed</code>','<code>Marks &amp;lt; 50 &amp;amp; failed</code>','<code>Marks \\< 50 \\& failed</code>','<code>&lt;![Marks]&gt;</code>'], a:1,
+   opts:['<code>Marks &amp;lt; 50 &amp;amp; failed</code>','<code>Marks < 50 & failed</code>','<code>Marks \\< 50 \\& failed</code>','<code>Marks &amp;lessthan; 50 &amp;and; failed</code>'], a:0,
    why:'&lt; and &amp; are reserved, so escape them as &amp;lt; and &amp;amp; (or wrap the text in a CDATA section).'},
-  {type:'mcq', q:'Which is a strong reason to exchange data with partner universities as XML?', opts:['It is smaller than JSON','The partners can validate it against a shared schema (XSD), and XML handles document-style data well','JavaScript reads it natively','It has no closing tags'], a:1,
+  {type:'mcq', q:'Which is a strong reason to exchange data with partner universities as XML?', opts:['XML files are always smaller than the same data in JSON','JavaScript reads XML natively as objects, with no parsing','Partners can validate it against a shared XSD schema','XML has no closing tags, so documents are shorter and faster to send'], a:2,
    why:'XML with an XSD gives strict validation between organisations, and it is widely used in enterprise and government exchange.'},
-  {type:'mcq', q:'An XML document is a tree with one root, and each element has exactly one parent. Which older database model does this match?', opts:['Network model','Hierarchical model','Relational model','Object model'], a:1,
+  {type:'mcq', q:'An XML document is a tree with one root, and each element has exactly one parent. Which older database model does this match?', opts:['Network model','Relational model','Object-oriented model','Hierarchical model'], a:3,
    why:'The hierarchical model is a tree of parent/child records. The network model allows many parents (owner/member sets), forming a graph.'}
  ]}
 ];
@@ -1561,23 +1576,67 @@ function totalStars(){return ALL.reduce((a,c)=>a+(S.stars[c.id]||0),0);}
 function doneCount(w){return w.ch.filter(c=>S.stars[c.id]).length;}
 const OK=m=>`<div class="ok">${icon('check')}<span>${m}</span></div>`;
 const ERR=m=>`<div class="err">${icon('x')}<span>${m}</span></div>`;
+/* Resizable tables where there is room: column grips + a vertical resize corner. Phones keep plain scrolling. */
+const WIDE=window.matchMedia?matchMedia('(min-width:600px)'):{matches:true};
+function enhanceTable(box){if(box.dataset.rz||!WIDE.matches)return;const head=box.querySelector('tr');if(!head)return;box.dataset.rz=1;box.classList.add('rz');
+  if(box.scrollHeight>330)box.style.height='320px';
+  [...head.cells].forEach(th=>{if(th.tagName!=='TH')return;const g=document.createElement('span');g.className='colgrip';g.tabIndex=0;g.setAttribute('role','separator');
+    g.setAttribute('aria-orientation','vertical');g.setAttribute('aria-label','Resize column '+th.textContent.trim()+'. Use the arrow keys; double-click to reset.');th.appendChild(g);});}
+function freezeCols(t){if(t.classList.contains('fixed'))return;const cells=[...t.rows[0].cells],w=cells.map(c=>c.getBoundingClientRect().width);
+  cells.forEach((c,i)=>c.style.width=w[i]+'px');t.style.width=w.reduce((a,b)=>a+b,0)+'px';t.classList.add('fixed');}
+function setCol(t,th,w){th.style.width=Math.max(56,Math.round(w))+'px';t.style.width=[...t.rows[0].cells].reduce((a,c)=>a+parseFloat(c.style.width||c.offsetWidth),0)+'px';}
+function resetCols(t){t.classList.remove('fixed');t.style.width='';[...t.rows[0].cells].forEach(c=>c.style.width='');}
+document.addEventListener('pointerdown',e=>{const g=e.target.closest('.colgrip');if(!g)return;e.preventDefault();e.stopPropagation();
+  const th=g.parentElement,t=th.closest('table');freezeCols(t);const x0=e.clientX,w0=th.getBoundingClientRect().width;t.classList.add('resizing');
+  try{g.setPointerCapture(e.pointerId);}catch(_){}
+  const mv=ev=>setCol(t,th,w0+ev.clientX-x0),up=()=>{t.classList.remove('resizing');g.removeEventListener('pointermove',mv);g.removeEventListener('pointerup',up);g.removeEventListener('pointercancel',up);};
+  g.addEventListener('pointermove',mv);g.addEventListener('pointerup',up);g.addEventListener('pointercancel',up);});
+document.addEventListener('dblclick',e=>{const g=e.target.closest('.colgrip');if(g)resetCols(g.closest('table'));});
+document.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('.colgrip');if(!g)return;
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();e.stopPropagation();const th=g.parentElement,t=th.closest('table');freezeCols(t);
+    setCol(t,th,th.getBoundingClientRect().width+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?48:16));}
+  else if(e.key==='Enter'||e.key==='Escape'){e.preventDefault();e.stopPropagation();if(e.key==='Enter')resetCols(g.closest('table'));else g.blur();}},true);
+new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;if(n.matches('.tbl'))enhanceTable(n);n.querySelectorAll('.tbl').forEach(enhanceTable);n.querySelectorAll('.keygrid').forEach(keyMore);}})
+  .observe(document.body,{childList:true,subtree:true});
 function tableHTML(r){if(!r||!r.columns||!r.columns.length)return OK('Ran OK. No rows returned.');
   return `<div class="tbl"><table><tr>${r.columns.map(c=>`<th>${esc(c)}</th>`).join('')}</tr>${r.values.map(v=>`<tr>${v.map(x=>`<td>${x===null?'<i class="muted">NULL</i>':esc(x)}</td>`).join('')}</tr>`).join('')}</table></div><div class="rows">${r.values.length} row(s)</div>`;}
 function mongoHTML(r){if(r.kind==='count')return `<pre>${r.value}</pre>`;if(r.kind==='msg')return `<pre>${esc(JSON.stringify(r.value,null,2))}</pre>`;
   return `<pre>${esc(r.value.length?r.value.map(d=>JSON.stringify(d,null,1).replace(/\n\s*/g,' ')).join('\n'):'(no documents)')}</pre><div class="rows">${r.value.length} document(s)</div>`;}
 
 /* typewriter key bars */
+/* Editor keys, grouped: pick a category from the dropdown; its keys wrap into a vertically scrolling grid. */
 const KEYS={
-  sql:['SELECT','*','FROM','WHERE',',','=','<>',"'",'(',')','AND','OR','ORDER BY','DESC','GROUP BY','HAVING','COUNT(','SUM(','MAX(','JOIN','ON','LEFT JOIN','LIKE','%','_','.',';','INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','CREATE TABLE','CREATE VIEW','AS','ALTER TABLE','ADD COLUMN','DEFAULT','INTEGER','TEXT','REAL','PRIMARY KEY','REFERENCES','NOT NULL','CHECK','IN'],
-  ra:['π','σ','⋈','×','−','∪','∩','ρ','←','∧','∨','¬','=','≠','>','<','≥','≤',"'",'(',')',','],
-  mongo:['db.students.find(','{','}',':',',','"','[',']',')','$gt','$gte','$lt','$lte','$ne','$in','$or','$elemMatch','$set','.sort(','.limit(','insertOne(','updateOne(','-1','_id'],
-  json:['{','}','[',']','"',':',',','true','false','null'],
-  xml:['<','>','</','/>','"','=','<?xml version="1.0"?>']
+  sql:[['Query',['SELECT','DISTINCT','*','FROM','WHERE','AS','ORDER BY','ASC','DESC']],
+       ['Conditions',['=','<>','>','<','>=','<=','AND','OR','NOT','IN','BETWEEN','LIKE','%','_','IS NULL',"strftime('%m', "]],
+       ['Joins',['JOIN','LEFT JOIN','ON','.','AS']],
+       ['Grouping',['GROUP BY','HAVING','COUNT(','SUM(','AVG(','MAX(','MIN(','(SELECT']],
+       ['Change data',['INSERT INTO','VALUES','UPDATE','SET','DELETE FROM','WHERE']],
+       ['Structure',['CREATE TABLE','CREATE VIEW','ALTER TABLE','ADD COLUMN','PRIMARY KEY','REFERENCES','NOT NULL','DEFAULT','CHECK','IN','INTEGER','TEXT','REAL']],
+       ['Symbols',['(',')',',',';',"'",'.','*','=']]],
+  ra:[['Operators',['π','σ','⋈','×','ρ','←']],['Set operations',['∪','∩','−']],
+      ['Conditions',['∧','∨','¬','=','≠','>','<','≥','≤']],['Symbols',["'",'(',')',',']]],
+  mongo:[['Commands',['db.students.find(','insertOne(','updateOne(','.sort(','.limit(','_id','-1']],
+         ['Operators',['$gt','$gte','$lt','$lte','$ne','$in','$or','$elemMatch','$set']],
+         ['Symbols',['{','}','[',']','(',')',':',',','"']]],
+  json:[['Brackets',['{','}','[',']']],['Punctuation',['"',':',',']],['Values',['true','false','null']]],
+  xml:[['Tags',['<','>','</','/>']],['Attributes',['=','"']],['Entities',['&lt;','&gt;','&amp;','&quot;']],
+       ['Declaration',['<?xml version="1.0" encoding="UTF-8"?>','<![CDATA[',']]>']]]
 };
-function keyBar(kind,taId){return `<div class="keys" aria-label="Insert symbols">${KEYS[kind].map(k=>`<button class="key" data-k="${esc(k)}" data-ta="${taId}">${esc(k)}</button>`).join('')}</div>`;}
+const KEYCAT={}; // remembers the chosen category per editor kind for this visit
+function keyList(kind,cat){const g=KEYS[kind];return cat==='All'?[...new Set(g.flatMap(x=>x[1]))]:(g.find(x=>x[0]===cat)||g[0])[1];}
+function keyBtns(kind,taId,cat){return keyList(kind,cat).map(k=>`<button class="key" data-k="${esc(k)}" data-ta="${taId}">${esc(k)}</button>`).join('');}
+function keyBar(kind,taId){const cats=KEYS[kind].map(x=>x[0]).concat('All');const cat=cats.includes(KEYCAT[kind])?KEYCAT[kind]:cats[0];
+  return `<div class="keys" data-kind="${kind}" data-ta="${taId}"><div class="keyhead"><label class="keylbl" for="kc-${taId}">Insert</label>
+    <select class="keycat" id="kc-${taId}">${cats.map(n=>`<option${n===cat?' selected':''}>${n}</option>`).join('')}</select></div>
+    <div class="keygrid" role="group" aria-label="${cat} keys">${keyBtns(kind,taId,cat)}</div></div>`;}
+document.addEventListener('change',e=>{const sel=e.target.closest('.keycat');if(!sel)return;const box=sel.closest('.keys');KEYCAT[box.dataset.kind]=sel.value;
+  const g=box.querySelector('.keygrid');g.innerHTML=keyBtns(box.dataset.kind,box.dataset.ta,sel.value);g.setAttribute('aria-label',sel.value+' keys');g.scrollTop=0;keyMore(g);});
+/* fade the bottom edge while more keys are hidden below */
+function keyMore(g){g.classList.toggle('more',g.scrollHeight-g.scrollTop-g.clientHeight>2);}
+document.addEventListener('scroll',e=>{const t=e.target;if(t&&t.classList&&t.classList.contains('keygrid'))keyMore(t);},true);
 document.addEventListener('click',e=>{const b=e.target.closest('.key');if(!b)return;const ta=document.getElementById(b.dataset.ta);if(!ta)return;
   let k=b.dataset.k;const s=ta.selectionStart,en=ta.selectionEnd,v=ta.value;
-  if(/^[A-Z]/.test(k)&&k.length>1)k=(s>0&&!/\s|\($/.test(v[s-1])?' ':'')+k+' ';
+  if(/^[A-Z]/.test(k)&&k.length>1)k=(s>0&&!/\s|\($/.test(v[s-1])?' ':'')+k+(/\($/.test(k)?'':' ');
   ta.value=v.slice(0,s)+k+v.slice(en);ta.selectionStart=ta.selectionEnd=s+k.length;ta.focus();});
 const edAttrs='autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"';
 
