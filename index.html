@@ -69,7 +69,7 @@ u{text-decoration-thickness:1.5px;text-underline-offset:3px;text-decoration-colo
 /* ===================== HEADER ===================== */
 #hdr{position:sticky;top:0;z-index:8;background:var(--paper);border-bottom:1px solid var(--rule)}
 #hdr .in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:8px 12px;min-height:60px}
-body.wide #hdr .in{max-width:1240px}
+body.wide #hdr .in{max-width:1760px}
 .hbtn{width:44px;height:44px;display:grid;place-items:center;border-radius:4px;flex:none;color:var(--ink)}
 .hbtn:hover{background:var(--sheet-2)}
 .hbtn .ic{width:22px;height:22px}
@@ -252,13 +252,13 @@ th,td{padding:7px 12px;border-bottom:1px solid var(--rule);text-align:left;white
 th{background:var(--sheet-2);color:var(--ink-2);position:sticky;top:0;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
 tr:last-child td{border-bottom:0}
 /* resizable tables (screens 600px+): drag a column edge, or the box's corner */
-.colgrip{position:absolute;top:0;right:0;bottom:0;width:12px;cursor:col-resize;touch-action:none;outline:none}
-.colgrip::after{content:'';position:absolute;top:24%;bottom:24%;right:5px;width:2px;border-radius:1px;background:var(--rule)}
+.colgrip{position:absolute;top:0;right:0;bottom:0;width:10px;cursor:col-resize;touch-action:none;outline:none}
+.colgrip::after{content:'';position:absolute;top:24%;bottom:24%;right:4px;width:2px;border-radius:1px;background:var(--rule)}
 .colgrip:hover::after,.colgrip:focus-visible::after,table.resizing .colgrip::after{background:var(--accent)}
 table.fixed{table-layout:fixed}
 table.fixed th,table.fixed td{overflow:hidden;text-overflow:ellipsis}
 table.resizing{cursor:col-resize;user-select:none}
-@media(min-width:600px){.tbl.rz{resize:both;width:fit-content;max-height:none;min-height:76px;min-width:160px}.tbl.rz table{width:auto}.tbl.rz th{padding-right:20px}}
+@media(min-width:600px){.tbl.rz{resize:both;width:max-content;max-height:none;min-height:76px;min-width:160px}.tbl.rz table{width:auto}.tbl.rz th,.tbl.rz td{padding-left:10px;padding-right:10px}.tbl.rz th{padding-right:16px}}
 .rows{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);margin-top:6px}
 .err,.ok{display:flex;gap:10px;align-items:flex-start;background:var(--sheet);border:1px solid var(--rule);border-left:3px solid var(--redpen);border-radius:4px;padding:10px 12px;font-family:var(--mono);font-size:13px;line-height:1.75;margin-top:12px;white-space:pre-wrap;word-break:break-word}
 .err .ic{color:var(--redpen);margin-top:1px}
@@ -276,7 +276,7 @@ table.resizing{cursor:col-resize;user-select:none}
 /* dock */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--paper);border-top:1px solid var(--rule);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
 .dock .in{max-width:720px;margin:0 auto;display:flex;gap:10px}
-body.wide .dock .in{max-width:1240px;justify-content:flex-end}
+body.wide .dock .in{max-width:1760px;justify-content:flex-end}
 .dock .btn{flex:1}
 body.wide .dock .btn{flex:0 1 360px}
 .dock .hbtn{width:48px;height:48px;border:1px solid var(--ink);border-radius:4px}
@@ -329,17 +329,17 @@ svg .k{fill:var(--sheet)}
 .bld .cap{display:flex;flex-direction:column;align-items:center;background:var(--paper);padding:0 6px;border-radius:2px;position:relative}
 .bld .pen{position:absolute;top:2px;right:20%;width:14px;height:20px;color:var(--ink)}
 .desk-only{display:none}
-.solo{max-width:860px;margin:0 auto}
+.solo{max-width:1200px;margin:0 auto}
 .main{min-width:0}
 @media(min-width:1024px){.desk-only{display:inline-flex}}
 
 /* ===================== DESKTOP ===================== */
 @media(min-width:1024px){
-  body.wide #app{max-width:1240px}
-  .playgrid{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:32px;align-items:start}
+  body.wide #app{max-width:1760px} /* wide enough that every table shows all its columns */
+  .playgrid{display:grid;grid-template-columns:clamp(240px,20vw,360px) minmax(0,1fr);gap:28px;align-items:start}
   .playgrid.nonotes{grid-template-columns:minmax(0,1fr)}
   .playgrid.nonotes .notes-side{display:none}
-  .playgrid.nonotes .main{width:100%;max-width:880px;margin:0 auto}
+  .playgrid.nonotes .main{width:100%;max-width:1280px;margin:0 auto}
   body.wide .dock .notesBtn{margin-right:auto;flex:none;width:auto;max-width:none}
   .notes-side{display:block;position:sticky;top:84px;max-height:calc(100vh - 190px);overflow:auto;padding-right:8px}
   .notes-side .lesson{border-top:1px solid var(--rule);padding:16px 0 4px}
@@ -349,7 +349,8 @@ svg .k{fill:var(--sheet)}
   .ws::before{left:56px}
   .ws .mnum{width:56px;top:30px;font-size:13px}
   .ws .mmark{left:13px;width:30px;height:30px;top:62px}
-  .ws .tbl{margin-right:-160px} /* tables use the wide right margin that the handwritten notes leave free */
+  /* keep a readable line length for text; tables and results may use the full worksheet width */
+  .ws .tag,.ws .q,.ws .qsub,.ws .fig,.ws .opts,.ws .sortItem,.ws .buildZone,.ws .hint,.ws .engine,.ws textarea.ed,.ws .keys,.note .nb{max-width:760px}
   .anno{top:58px;right:14px;width:156px;max-width:none;background:none;border:0;box-shadow:none;transform:rotate(-3deg);padding:0;font-size:24px}
   body.wide.home #app{max-width:1040px}
   .homegrid{display:grid;grid-template-columns:minmax(0,480px) 1fr;gap:40px;align-items:start}
@@ -1781,8 +1782,10 @@ function enhanceTable(box){if(box.dataset.rz||!WIDE.matches)return;const head=bo
   clampBox(box);if(RO){RO.observe(box);RO.observe(box.querySelector('table'));}}
 /* The box can be dragged wider/taller only as far as the table's last column and last row (and never past the space beside it). */
 function clampBox(box){const t=box.querySelector('table');if(!t||!t.offsetWidth||!box.isConnected)return;
-  const r=box.getBoundingClientRect(),pr=box.parentElement.getBoundingClientRect(),mr=parseFloat(getComputedStyle(box).marginRight)||0;
-  const room=Math.floor(pr.right-r.left-mr), edgeX=box.offsetWidth-box.clientWidth, edgeY=box.offsetHeight-box.clientHeight; // borders + any scrollbar
+  const r=box.getBoundingClientRect(),ws=box.closest('.ws');let right;
+  if(ws){const wr=ws.getBoundingClientRect();right=wr.right-Math.min(16,parseFloat(getComputedStyle(ws).paddingRight)||0);} // tables may run into the worksheet's right margin
+  else{const pe=box.parentElement,pr=pe.getBoundingClientRect();right=pr.right-(parseFloat(getComputedStyle(pe).paddingRight)||0);}
+  const room=Math.floor(right-r.left), edgeX=box.offsetWidth-box.clientWidth, edgeY=box.offsetHeight-box.clientHeight; // borders + any scrollbar
   const mw=Math.max(160,Math.min(room,Math.ceil(t.offsetWidth+edgeX))), mh=Math.max(76,Math.ceil(t.offsetHeight+edgeY));
   if(box.style.maxWidth!==mw+'px')box.style.maxWidth=mw+'px';if(box.style.maxHeight!==mh+'px')box.style.maxHeight=mh+'px';}
 const RO=window.ResizeObserver?new ResizeObserver(es=>requestAnimationFrame(()=>{const seen=new Set();for(const e of es){const b=e.target.closest('.tbl');if(b&&!seen.has(b)){seen.add(b);clampBox(b);}}})):null;
